@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Script examples
+# https://github.com/Murodese/pynab/blob/master/monitor.sh
+# http://www.leehodgkinson.com/blog/quickly-setup-multiple-pane-and-multiple-window-sessions-in-your-terminal/
+
+SESSION=$USER
+
+# -2: forces 256 colors,
+byobu-tmux -2 new-session -d -s $SESSION
+
+# dev window
+byobu-tmux rename-window -t $SESSION:0 'Dev'
+byobu-tmux split-window  -v
+byobu-tmux split-window  -h
+# Select 1st pane cd and venv
+byobu-tmux select-pane -t 0
+byobu-tmux send-keys "cd ." C-m
+byobu-tmux send-keys "nodemon ./index.js" C-m
+#byobu-tmux send-keys "clear" C-m
+
+# Same with 2nd pane
+byobu-tmux select-pane -t 1
+byobu-tmux send-keys "cd ." C-m
+byobu-tmux send-keys "gulp watch" C-m
+
+# Same with 3nd pane
+# Call for browserify
+#browserify -t [ babelify --optional es7.asyncFunctions --optional runtime ] -g reactify --debug ./src/main.js -o public/lib/bundle.js
+
+# Watch for browserify
+# "watchify -t [ babelify --optional es7.asyncFunctions --optional runtime ] -g reactify --debug ./src/main.js -o public/lib/bundle.js"
+
+byobu-tmux select-pane -t 2
+byobu-tmux send-keys "cd ." C-m
+#byobu-tmux send-keys "watchify --debug ./build/gms-client.js -o public/lib/bundle.js" C-m
+
+byobu-tmux select-layout even-vertical
+
+# Runserver window next
+#byobu-tmux new-window -t $SESSION:1 -n 'Runserver'
+#byobu-tmux send-keys "cd /path/to/workingdir" C-m
+#byobu-tmux send-keys 'source venv/bin/activate' C-m
+
+
+# Set default window as the dev split plane
+byobu-tmux select-window -t $SESSION:0
+
+# Attach to the session you just created
+# (flip between windows with alt -left and right)
+byobu-tmux -2 attach-session -t $SESSION

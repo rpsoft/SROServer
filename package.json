@@ -1,0 +1,46 @@
+{
+  "name": "SRO project",
+  "version": "0.1",
+  "description": "Stationers project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com:rpsoft/StationersRegister.git"
+  },
+  "keywords": [
+    "IP",
+    "analysis",
+    "tracking"
+  ],
+  "author": "Jesus Rodriguez Perez",
+  "license": "ISC",
+  "homepage": "https://github.com/rpsoft/StationersRegister",
+  "devDependencies": {
+    "babel-plugin-syntax-export-extensions": "^6.5.0",
+    "babel-plugin-syntax-object-rest-spread": "^6.3.13",
+    "babel-plugin-transform-async-to-generator": "^6.5.0",
+    "babel-plugin-transform-export-extensions": "^6.5.0",
+    "babel-plugin-transform-object-rest-spread": "^6.3.13",
+    "babel-plugin-transform-regenerator": "^6.5.2",
+    "babel-plugin-transform-runtime": "^6.5.2",
+    "babel-polyfill": "^6.5.0",
+    "babel-preset-es2015": "^6.3.13",
+    "babel-preset-react": "^6.3.13",
+    "babel-preset-stage-0": "^6.5.0",
+    "babel-runtime": "^6.5.0",
+    "babel-template": "^6.6.0",
+    "babel-traverse": "^6.6.3",
+    "gulp": "^3.9.0",
+    "gulp-babel": "^6.1.1",
+    "gulp-concat": "^2.6.0",
+    "gulp-less": "^3.0.5",
+    "gulp-sourcemaps": "^1.6.0"
+  },
+  "dependencies": {
+    "parse-domain": "~0.2.1",
+    "pg": "~4.5.5"
+  }
+}

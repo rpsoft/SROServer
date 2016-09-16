@@ -1,0 +1,46 @@
+#upper_header{
+  height: 50px;
+
+}
+#upper_header img{
+  height: 100%;
+  margin-right: 40px;
+}
+
+.dowloadItem img{
+  height: 20px;
+}
+
+.lineStat{
+    font-weight: bold;
+    display:inline;
+}
+
+.lineStat.likes{
+  color: green;
+}
+
+.lineStat.downloads{
+  color: blue;
+}
+
+.dowloadItem div{
+  display: inline;
+  line-height: 25px;
+}
+
+.msg{
+  padding-left: 20px;
+  padding-right: 20px;
+  overflow-x: scroll;
+}
+
+.time{
+  display: inline;
+  font-weight: bold;
+}
+
+.sourceLogo {
+  height: 30px;
+  margin-right: 10px;
+}

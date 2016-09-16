@@ -1,0 +1,105 @@
+<html>
+<head>
+  <title>Express HTML</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="/ipwatchr/css/general.css">
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+
+
+  <script>
+    $( document ).ready(function() {
+      getData();
+    //  $('#example').DataTable();
+      setInterval("getData()",120000);
+  });
+  /**
+  * Gets the data from the server. The Data contains every post for the seed accounts, together with like information and associated links and date of creation.
+  */
+ function getData(){
+   $("#results").empty();
+   $.getJSON( "/ipwatchr/data", function( data ) {
+
+     var Totals = {};
+     Totals.likes = 0;
+     Totals.posts = 0;
+
+     for (var i in data){
+       var item = data[i];
+
+
+       if ( item.link.length < 1){ // if we cannot obtain a URL the post is useless.
+         continue;
+       }
+
+       var domNode = $("<div class='dowloadItem'></div>");
+
+       var msgSizeLimit = 150;
+       var shortenedMessage = (item.message.length > msgSizeLimit) ? item.message.substring(0,msgSizeLimit)+"[...]": item.message+(' '.repeat(msgSizeLimit-item.message.length+5) );
+
+       var sourceImage = "<img class='sourceLogo' src='/ipwatchr/images/"+item.sourceType+".png' </img>"
+
+       domNode.attr("id","res"+i);
+       domNode.html(//"<div class='seed'>"+ item.seed +"</div>"
+                sourceImage
+                +"<div class='time'>"+ item.created_time +"</div>"
+                +"<div class='msg'>"+shortenedMessage +"</div>"
+                +"<img src='/ipwatchr/images/like.png'><div class='lineStat likes'>"+item.likes_count+"</div>"
+                +"<img src='/ipwatchr/images/d.png'><div class='lineStat downloads'>"+((item.torrent) ? item.torrent.totalSeeds : 0)+"</div>"
+                +"<a target='_blank' href='"+item.link+"'> link </a>"
+              //  +"<div class='msg'>"+((item.torrent) ? item.torrent.title : "")+"</div>"
+                +"<div class='msg'>"+item.productTitle+"</div>"
+              );
+
+
+       $("#results").append(domNode);
+
+       Totals.likes +=  item.likes_count;
+       Totals.posts +=  1;
+     }
+
+     drawStatisticalSummary(Totals);
+
+
+   });
+ }
+
+/**
+* Does what it says in the tin...
+*/
+function drawStatisticalSummary(Totals){
+      $("#statsSummary").empty();
+      $("#statsSummary").append("<div>Total Likes:"+Totals.likes+"</div>");
+      $("#statsSummary").append("<div>Total Posts:"+Totals.posts+"</div>");
+      $("#statsSummary").append("<div>Avg likes:"+Totals.likes/Totals.posts+"</div>");
+}
+
+
+
+  </script>
+
+
+</head>
+<body>
+<div id="upper_header"><img src="/ipwatchr/images/clogo.jpg"/> <img src="/ipwatchr/images/logo.png"/></div>
+<hr>
+<div id="statsSummary">
+
+
+</div>
+<div id = "example"> </div>
+<hr>
+<div id="results">
+
+
+</div>
+
+
+</body>
+</html>

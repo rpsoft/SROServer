@@ -1,0 +1,28 @@
+{
+  "name": "ipwatchr",
+  "description": "Program to track IP infringement on Social Media",
+  "main": "index.js",
+  "authors": [
+    "Jesus Rodriguez Perez"
+  ],
+  "license": "ISC",
+  "keywords": [
+    "IP",
+    "analysis",
+    "tracking"
+  ],
+  "moduleType": [],
+  "homepage": "copyrightcentral.arts.gla.ac.uk/ipwatchr",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.1",
+    "express": "^4.13.4"
+  }
+}
