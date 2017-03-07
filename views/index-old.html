@@ -1,0 +1,53 @@
+<html>
+<head>
+  <title>Express HTML</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap-theme.min.css">
+  <link rel="stylesheet" href="/ipwatchr/css/general.css">
+
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+
+
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.11/css/jquery.dataTables.min.css">
+  <script src="https://cdn.datatables.net/1.10.11/js/jquery.dataTables.min.js"></script>
+
+
+  <script>
+    $( document ).ready(function() {
+      getData();
+    //  $('#example').DataTable();
+      setInterval("getData()",120000);
+  });
+  /**
+  * Gets the data from the server. The Data contains every post for the seed accounts, together with like information and associated links and date of creation.
+  */
+ function getData(){
+   $("#results").empty();
+   $.get( "/data", function( data ) {
+
+     $('body').html(data);
+
+   });
+ }
+  </script>
+
+
+</head>
+<body>
+<div id="upper_header"><img src="/images/clogo.jpg"/> <img src="/images/logo.png"/></div>
+<hr>
+<div id="statsSummary">
+
+
+</div>
+<div id = "example"> </div>
+<hr>
+<div id="results">
+
+
+</div>
+
+
+</body>
+</html>

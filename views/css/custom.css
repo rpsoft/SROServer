@@ -1,0 +1,20 @@
+.note {
+  display: inline;
+  margin: 0em;
+  padding: 0em;
+  border: 1px solid black;
+  border-radius: 0px;
+  width: auto;
+  position: relative;
+  background-color: white;
+}
+
+html {
+  width: 80em;
+
+}
+
+#teibpToolbox{
+  left: 80%;
+
+}
