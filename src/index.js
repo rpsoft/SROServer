@@ -20,7 +20,28 @@ app.use(express.static(__dirname + '/images'));
 app.engine('html', require('ejs').renderFile);
 app.set('view engine', 'html');
 
+import {URL_BASE} from "./config"
+
+var EXISTDB = require("./existDB")
+
+var xml2js = require('xml2js');
+
+
+
+
 async function main(){
+  console.log(EXISTDB)
+  var res = await EXISTDB.testExist()
+  console.log(res)
+
+
+  var parser = new xml2js.Parser();
+
+  parser.parseString(res, function (err, result) {
+          console.dir(result);
+          console.log('Done');
+          console.log(JSON.stringify(result))
+      });
 
 }
 main();
@@ -32,24 +53,15 @@ app.get('/',function(req,res){
   //__dirname : It will resolve to your project folder.
 });
 
+app.get('/data',async function(req,res){
+  //console.log("EPALE!"+JSON.stringify(req));
 
-app.get('/data',function(req,res){
+  var xmlResult = await EXISTDB.testExist()
 
-  fs.readdir('/var/www/html/copyrightcentral.arts.gla.ac.uk/www/StationersRegister/views/content', function (error,files){
-      var cleanFiles = []
-      for ( var a in files){
-        if ( files[a].indexOf('arber') > -1 ){
-          cleanFiles.push(files[a])
-        }
-      }
-      console.log(cleanFiles);
-      res.json(JSON.stringify(cleanFiles));
-  });
-  // fs. readFile('arber1-2014-01-12.xml', 'utf8', function(err, contents) {
-  //   res.render(contents, { data: "" });
-  // });
+  res.send(xmlResult)
 
-
+  // res.json({"data":"goes in here"});
+  //__dirname : It will resolve to your project folder.
 });
 
 app.listen(6541, function () {
