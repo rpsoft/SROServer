@@ -18,13 +18,12 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var testExist = exports.testExist = function () {
-    var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
-        var query;
+    var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(query) {
         return _regenerator2.default.wrap(function _callee$(_context) {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-                        query = 'xquery version "3.0"; declare default element namespace "http://www.tei-c.org/ns/1.0";' + 'let $hamlet := doc("/db/SRO/sample%20entries.xml")' + 'return $hamlet/TEI/text/body/div/div[@type="entries"]/div[@type="entryGrp"]/div[@type="entry"]';
+                        query = 'xquery version "3.0";' + 'declare default element namespace "http://www.tei-c.org/ns/1.0";' + 'declare namespace tei="http://www.tei-c.org/ns/1.0";' + '<entries>' + '{' + ' for $hit in doc("/db/SRO/docs/sample%20entries.xml")//tei:div[ft:query(., "' + query + '")]' + ' where $hit/@type="entry"' + ' return <entry><docid>{data($hit/@xml:id)}</docid>{$hit}</entry>' + '}' + '</entries>';
                         return _context.abrupt('return', new _promise2.default(function (Resolve, Reject) {
 
                             try {
@@ -45,7 +44,7 @@ var testExist = exports.testExist = function () {
         }, _callee, this);
     }));
 
-    return function testExist() {
+    return function testExist(_x) {
         return _ref.apply(this, arguments);
     };
 }();

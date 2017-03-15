@@ -4,40 +4,16 @@ var _regenerator = require('babel-runtime/regenerator');
 
 var _regenerator2 = _interopRequireDefault(_regenerator);
 
-var _stringify = require('babel-runtime/core-js/json/stringify');
-
-var _stringify2 = _interopRequireDefault(_stringify);
-
 var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var main = function () {
   var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
-    var res, parser;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
-            console.log(EXISTDB);
-            _context.next = 3;
-            return EXISTDB.testExist();
-
-          case 3:
-            res = _context.sent;
-
-            console.log(res);
-
-            parser = new xml2js.Parser();
-
-
-            parser.parseString(res, function (err, result) {
-              console.dir(result);
-              console.log('Done');
-              console.log((0, _stringify2.default)(result));
-            });
-
-          case 7:
           case 'end':
             return _context.stop();
         }
@@ -95,19 +71,27 @@ app.get('/data', function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            _context2.next = 2;
-            return EXISTDB.testExist();
+            //console.log("EPALE!"+JSON.stringify(req));
+            xmlResult = "<div>invalid query</div>";
 
-          case 2:
+            if (!req.query.query) {
+              _context2.next = 5;
+              break;
+            }
+
+            _context2.next = 4;
+            return EXISTDB.testExist(req.query.query);
+
+          case 4:
             xmlResult = _context2.sent;
 
-
+          case 5:
             res.send(xmlResult);
 
             // res.json({"data":"goes in here"});
             //__dirname : It will resolve to your project folder.
 
-          case 4:
+          case 6:
           case 'end':
             return _context2.stop();
         }

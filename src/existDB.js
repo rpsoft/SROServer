@@ -9,11 +9,18 @@ var db = new exist.DB('http://localhost:8080', {
 });
 
 
-export async function testExist(){
+export async function testExist(query){
 
-    var query = 'xquery version "3.0"; declare default element namespace "http://www.tei-c.org/ns/1.0";'
-                +'let $hamlet := doc("/db/SRO/sample%20entries.xml")'
-                +'return $hamlet/TEI/text/body/div/div[@type="entries"]/div[@type="entryGrp"]/div[@type="entry"]'
+    var query = 'xquery version "3.0";'
+                  +'declare default element namespace "http://www.tei-c.org/ns/1.0";'
+                  +'declare namespace tei="http://www.tei-c.org/ns/1.0";'
+                  +'<entries>'
+                  +'{'
+                  +' for $hit in doc("/db/SRO/docs/sample%20entries.xml")//tei:div[ft:query(., "'+query+'")]'
+                  +' where $hit/@type="entry"'
+                  +' return <entry><docid>{data($hit/@xml:id)}</docid>{$hit}</entry>'
+                  +'}'
+                  +'</entries>'
     return new Promise( function (Resolve,Reject){
 
         try{

@@ -30,18 +30,11 @@ var xml2js = require('xml2js');
 
 
 async function main(){
-  console.log(EXISTDB)
-  var res = await EXISTDB.testExist()
-  console.log(res)
+  // console.log(EXISTDB)
+  // var res = await EXISTDB.testExist("Butter")
+  // console.log(res)
 
 
-  var parser = new xml2js.Parser();
-
-  parser.parseString(res, function (err, result) {
-          console.dir(result);
-          console.log('Done');
-          console.log(JSON.stringify(result))
-      });
 
 }
 main();
@@ -55,9 +48,10 @@ app.get('/',function(req,res){
 
 app.get('/data',async function(req,res){
   //console.log("EPALE!"+JSON.stringify(req));
-
-  var xmlResult = await EXISTDB.testExist()
-
+  var xmlResult = "<div>invalid query</div>"
+  if (req.query.query){
+     xmlResult = await EXISTDB.testExist(req.query.query)
+  }
   res.send(xmlResult)
 
   // res.json({"data":"goes in here"});
