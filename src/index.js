@@ -30,51 +30,46 @@ var xml2js = require('xml2js');
 
 
 async function main(){
-  // console.log(EXISTDB)
-  // var res = await EXISTDB.testExist("Butter")
-  // console.log(res)
-
-
 
 }
 main();
 
 
 app.get('/',function(req,res){
-  //console.log("EPALE!"+JSON.stringify(req));
   res.render('index.html', { data: "" });
-  //__dirname : It will resolve to your project folder.
 });
 
 app.get('/data',async function(req,res){
-  //console.log("EPALE!"+JSON.stringify(req));
+
   var xmlResult = "<div>invalid query</div>"
   if (req.query.query){
      xmlResult = await EXISTDB.testExist(req.query.query)
   }
   res.send(xmlResult)
 
-  // res.json({"data":"goes in here"});
-  //__dirname : It will resolve to your project folder.
 });
+
+app.get('/users/:userId/books/:bookId', function (req, res) {
+  res.send(req.params)
+})
 
 app.listen(6541, function () {
   console.log('Application Running on port 6541 ' + new Date().toISOString());
 });
 
 
-
-function getUrl(message){
-  if ( message == undefined) {return ""};
-  var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
-  var regex = new RegExp(expression);
-  var t = message;
-
-  var result = t.match(regex);
-  if (result)
-  {
-    return result[0].toString();
-  } else {
-    return "";
-  }
-}
+//
+// function getUrl(message){
+//   if ( message == undefined) {return ""};
+//   var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+//   var regex = new RegExp(expression);
+//   var t = message;
+//
+//   var result = t.match(regex);
+//   if (result)
+//   {
+//     return result[0].toString();
+//   } else {
+//     return "";
+//   }
+// }

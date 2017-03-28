@@ -59,9 +59,7 @@ var xml2js = require('xml2js');
 main();
 
 app.get('/', function (req, res) {
-  //console.log("EPALE!"+JSON.stringify(req));
   res.render('index.html', { data: "" });
-  //__dirname : It will resolve to your project folder.
 });
 
 app.get('/data', function () {
@@ -71,7 +69,6 @@ app.get('/data', function () {
       while (1) {
         switch (_context2.prev = _context2.next) {
           case 0:
-            //console.log("EPALE!"+JSON.stringify(req));
             xmlResult = "<div>invalid query</div>";
 
             if (!req.query.query) {
@@ -88,9 +85,6 @@ app.get('/data', function () {
           case 5:
             res.send(xmlResult);
 
-            // res.json({"data":"goes in here"});
-            //__dirname : It will resolve to your project folder.
-
           case 6:
           case 'end':
             return _context2.stop();
@@ -104,23 +98,27 @@ app.get('/data', function () {
   };
 }());
 
+app.get('/users/:userId/books/:bookId', function (req, res) {
+  res.send(req.params);
+});
+
 app.listen(6541, function () {
   console.log('Application Running on port 6541 ' + new Date().toISOString());
 });
 
-function getUrl(message) {
-  if (message == undefined) {
-    return "";
-  };
-  var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
-  var regex = new RegExp(expression);
-  var t = message;
-
-  var result = t.match(regex);
-  if (result) {
-    return result[0].toString();
-  } else {
-    return "";
-  }
-}
+//
+// function getUrl(message){
+//   if ( message == undefined) {return ""};
+//   var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+//   var regex = new RegExp(expression);
+//   var t = message;
+//
+//   var result = t.match(regex);
+//   if (result)
+//   {
+//     return result[0].toString();
+//   } else {
+//     return "";
+//   }
+// }
 //# sourceMappingURL=index.js.map

@@ -16,9 +16,11 @@ export async function testExist(query){
                   +'declare namespace tei="http://www.tei-c.org/ns/1.0";'
                   +'<entries>'
                   +'{'
-                  +' for $hit in doc("/db/SRO/docs/sample%20entries.xml")//tei:div[ft:query(., "'+query+'")]'
+                  +'for $hit in collection("/db/SRO")//tei:div[ft:query(., "'+query+'")]'
+                  +'let $score as xs:float := ft:score($hit)'
                   +' where $hit/@type="entry"'
-                  +' return <entry><docid>{data($hit/@xml:id)}</docid>{$hit}</entry>'
+                  +' order by $score descending'
+                  +' return <entry><docid>{data($hit/@xml:id)}</docid><score>{data($score)}</score>{$hit}</entry>'
                   +'}'
                   +'</entries>'
     return new Promise( function (Resolve,Reject){

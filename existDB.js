@@ -23,7 +23,7 @@ var testExist = exports.testExist = function () {
             while (1) {
                 switch (_context.prev = _context.next) {
                     case 0:
-                        query = 'xquery version "3.0";' + 'declare default element namespace "http://www.tei-c.org/ns/1.0";' + 'declare namespace tei="http://www.tei-c.org/ns/1.0";' + '<entries>' + '{' + ' for $hit in doc("/db/SRO/docs/sample%20entries.xml")//tei:div[ft:query(., "' + query + '")]' + ' where $hit/@type="entry"' + ' return <entry><docid>{data($hit/@xml:id)}</docid>{$hit}</entry>' + '}' + '</entries>';
+                        query = 'xquery version "3.0";' + 'declare default element namespace "http://www.tei-c.org/ns/1.0";' + 'declare namespace tei="http://www.tei-c.org/ns/1.0";' + '<entries>' + '{' + 'for $hit in collection("/db/SRO")//tei:div[ft:query(., "' + query + '")]' + 'let $score as xs:float := ft:score($hit)' + ' where $hit/@type="entry"' + ' order by $score descending' + ' return <entry><docid>{data($hit/@xml:id)}</docid><score>{data($score)}</score>{$hit}</entry>' + '}' + '</entries>';
                         return _context.abrupt('return', new _promise2.default(function (Resolve, Reject) {
 
                             try {
