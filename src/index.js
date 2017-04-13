@@ -24,9 +24,30 @@ import {URL_BASE} from "./config"
 
 var EXISTDB = require("./existDB")
 
-var xml2js = require('xml2js');
+var convert = require('xml-js');
+
+// var XMLSplitter = require('xml-splitter')
+
+// var $$ = require('xml-selector');
+
+const XmlReader = require('xml-reader');
+const xmlQuery = require('xml-query');
 
 
+
+var cachedLastQuery = [];
+//
+// var xs = new XMLSplitter('/exist:result/entries//entry')
+//
+//     xs.on('data', function(data) {
+//         cachedLastQuery.push(data);
+//
+//     })
+//
+//
+//     xs.on('end', function(counter) {
+//         console.log(counter+' slices !') // counts all the slices ever apparently!.
+//     })
 
 
 async function main(){
@@ -35,23 +56,80 @@ async function main(){
 main();
 
 
-app.get('/',function(req,res){
-  res.render('index.html', { data: "" });
+app.get('/api/',function(req,res){
+  res.render('index.html', { name: "cucu" });
 });
 
-app.get('/data',async function(req,res){
-
-  var xmlResult = "<div>invalid query</div>"
+app.get('/api/data',async function(req,res){
   if (req.query.query){
-     xmlResult = await EXISTDB.testExist(req.query.query)
+      var xmlResult = await EXISTDB.textSearch(req.query.query)
+     res.send(convert.xml2json(xmlResult, {compact: true, spaces: 4}))
   }
-  res.send(xmlResult)
+});
+
+app.get('/api/allPeople',async function(req,res){
+  var xmlResult = await EXISTDB.getAllPeople()
+    res.send(convert.xml2json(xmlResult, {compact: true, spaces: 4}))
+});
+
+// app.get('/allEntries',async function(req,res){
+//
+//
+//   var xmlResult = await EXISTDB.getAllEntries()
+//
+//   const ast = XmlReader.parseSync(xmlResult);
+//
+//   const xq = xmlQuery(ast);
+//
+//   //xmlQuery(ast).children().children().each(node => console.log(node.text()));
+//   xmlQuery(ast).children().children().each(node => console.log("ENTRY:: "+xmlQuery(node).text()))
+//
+//
+//   // cachedLastQuery =[];
+//   // xs.parseString(xmlResult);
+//   // cachedLastQuery.map(function (item,i) {
+//   //
+//   //   console.log(item.div)
+//   //
+//   // })
+//   // console.log(cachedLastQuery)
+//
+//   res.send(xmlResult)
+//
+// });
+
+app.get('/api/allEntriesPaged',async function(req,res){
+  console.log(req.query.page)
+  if (req.query.page){
+    var xmlResult = await EXISTDB.getAllEntriesPaged(req.query.page,req.query.limit)
+    // console.log(xmlResult)
+     res.send(xmlResult)
+  }
+});
+
+app.get('/api/allEntries',async function(req,res){
+
+
+  var xmlResult = await EXISTDB.getAllEntries()
+
+  // const ast = XmlReader.parseSync(xmlResult);
+  //
+  // const xq = xmlQuery(ast);
+  //
+  // //xmlQuery(ast).children().children().each(node => console.log(node.text()));
+  // xmlQuery(ast).children().children().each(node => console.log("ENTRY:: "+xmlQuery(node).text()))
+
+    // res.send(convert.xml2json(xmlResult, {compact: true, spaces: 4}))
+
+    res.send(xmlResult);
+
 
 });
 
-app.get('/users/:userId/books/:bookId', function (req, res) {
-  res.send(req.params)
-})
+
+// app.get('/users/:userId/books/:bookId', function (req, res) {
+//   res.send(req.params)
+// })
 
 app.listen(6541, function () {
   console.log('Application Running on port 6541 ' + new Date().toISOString());
