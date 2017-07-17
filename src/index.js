@@ -4,10 +4,11 @@ var app = express();
 
 var html = require("html");
 
-var sync = require('synchronize');
-
 var Promise = require('es6-promise').Promise;
 var fs = require('fs');
+
+var request = require("request");
+
 
 app.use(express.static(__dirname + '/domainParserviews'));
 //Store all HTML files in view folder.
@@ -60,16 +61,73 @@ app.get('/api/',function(req,res){
   res.render('index.html', { name: "cucu" });
 });
 
-app.get('/api/data',async function(req,res){
-  if (req.query.query){
-      var xmlResult = await EXISTDB.textSearch(req.query.query)
-     res.send(convert.xml2json(xmlResult, {compact: true, spaces: 4}))
+app.get('/api/staticPage',async function(req,res){
+  if (req.query.page){
+    var url;
+    //console.log(req.query.page)
+
+    switch (req.query.page){
+      case "home":
+        url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/home.html"
+        break;
+      case "project":
+        url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/project.html"
+        break;
+      case "about":
+        url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/about.html"
+        break;
+      default:
+        url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/home.html"
+    }
+
+    request(url, function(error, response, body) {
+      res.send(body)
+    });
   }
 });
 
+app.get('/api/data',async function(req,res){
+  if (req.query.query){
+
+     var xmlResult;
+      if ( req.query.sortField ) {
+        if ( !(req.query.direction.indexOf("undefined") > -1) ){
+          xmlResult = await EXISTDB.textSearch(req.query.query,req.query.page,req.query.limit,req.query.sortField,req.query.direction)
+        } else {
+          xmlResult = await EXISTDB.textSearch(req.query.query,req.query.page,req.query.limit,req.query.sortField,"ascending")
+        }
+      }else {
+        xmlResult = await EXISTDB.textSearch(req.query.query,req.query.page,req.query.limit)
+      }
+
+     res.send(xmlResult)
+  }
+});
+
+app.get('/api/entry',async function(req,res){
+  if (req.query.entryID){
+     var xmlResult = await EXISTDB.getEntry(req.query.entryID)
+     res.send(xmlResult)
+  }
+});
+
+app.get('/api/advSearch',async function(req,res){
+
+
+  //if (){
+  //  console.log(req.query)
+     var xmlResult;
+
+          xmlResult = await EXISTDB.advSearch(req.query)
+
+
+     res.send(xmlResult)
+  //}
+});
+
 app.get('/api/allPeople',async function(req,res){
-  var xmlResult = await EXISTDB.getAllPeople()
-    res.send(convert.xml2json(xmlResult, {compact: true, spaces: 4}))
+    var xmlResult = await EXISTDB.getAllPeople()
+    res.send(xmlResult)
 });
 
 // app.get('/allEntries',async function(req,res){
