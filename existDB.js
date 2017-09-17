@@ -22,8 +22,8 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var advSearch = exports.advSearch = function () {
-  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(q) {
-    var filters, dateFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, query, post_query;
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(q) {
+    var filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, query, post_query;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -38,42 +38,95 @@ var advSearch = exports.advSearch = function () {
             //{"query":"william","person":"gfdgfd","copies":"fsdfds","minDate":"-14999130000000","maxDate":"1000335600000","minFees":"32","maxFees":"32","entry":"fdsafdsarew","page":"1","limit":"20","sortField":"@xml:id","direction":"ascending"}
 
             dateFiltersArray = [];
+            volumeFiltersArray = [];
+            entryTypeFiltersArray = [];
+            entererRoleFiltersArray = [];
+            _context.t0 = _regenerator2.default.keys(filters);
 
-
-            for (f in filters) {
-              filterKey = filters[f].split("_")[0];
-              filterValue = filters[f].split("_")[1];
-
-
-              switch (filterKey) {
-                case "date":
-                  minDate = filterValue.split("-")[0] + "-01-01";
-                  maxDate = filterValue.split("-")[1] + "-12-31";
-
-
-                  dateFiltersArray.push("($currentDate >= xs:date('" + minDate + "') and $currentDate <= xs:date('" + maxDate + "'))");
-
-              }
+          case 8:
+            if ((_context.t1 = _context.t0()).done) {
+              _context.next = 44;
+              break;
             }
 
-            console.log(dateFiltersArray.join(" or "));
-            dateFiltersString = "";
+            f = _context.t1.value;
+            filterKey = filters[f].split("_")[0];
+            filterValue = filters[f].split("_")[1];
+            _context.t2 = filterKey;
+            _context.next = _context.t2 === "date" ? 15 : _context.t2 === "volume" ? 19 : _context.t2 === "entryType" ? 28 : _context.t2 === "entererRole" ? 35 : 42;
+            break;
 
-            if (dateFiltersArray.length > 0) {
+          case 15:
+            minDate = filterValue.split("-")[0] + "-01-01";
+            maxDate = filterValue.split("-")[1] + "-12-31";
 
-              dateFiltersString = "and ( " + dateFiltersArray.join(" or ") + " ) ";
-            }
 
-            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? '[ft:query(., "' + q.query + '")]' : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
+            dateFiltersArray.push("($currentDate >= xs:date('" + minDate + "') and $currentDate <= xs:date('" + maxDate + "'))");
+            return _context.abrupt('break', 42);
+
+          case 19:
+            _context.t3 = filterValue;
+            _context.next = _context.t3 === "A" ? 22 : _context.t3 === "B" ? 24 : _context.t3 === "C" ? 26 : 28;
+            break;
+
+          case 22:
+            volumeFiltersArray.push("($rawCode < 1265)");
+            return _context.abrupt('break', 28);
+
+          case 24:
+            volumeFiltersArray.push("(($rawCode > 1264) and ($rawCode < 3635))");
+            return _context.abrupt('break', 28);
+
+          case 26:
+            volumeFiltersArray.push("($rawCode > 3634)");
+            return _context.abrupt('break', 28);
+
+          case 28:
+            _context.t4 = filterValue;
+            _context.next = _context.t4 === "Entered" ? 31 : _context.t4 === "Stock" ? 33 : 35;
+            break;
+
+          case 31:
+            entryTypeFiltersArray.push("($enteredNotes > 0)");
+            return _context.abrupt('break', 35);
+
+          case 33:
+            entryTypeFiltersArray.push("($stockNotes > 0)");
+            return _context.abrupt('break', 35);
+
+          case 35:
+            _context.t5 = filterValue;
+            _context.next = _context.t5 === "Stationer" ? 38 : _context.t5 === "Non-Stationer" ? 40 : 42;
+            break;
+
+          case 38:
+            entererRoleFiltersArray.push("$isStationer");
+            return _context.abrupt('break', 42);
+
+          case 40:
+            entererRoleFiltersArray.push("not($isStationer )");
+            return _context.abrupt('break', 42);
+
+          case 42:
+            _context.next = 8;
+            break;
+
+          case 44:
+
+            // console.log(dateFiltersArray.join(" or "))
+            dateFiltersString = mergeFilter(dateFiltersArray);
+            volumeFilterString = mergeFilter(volumeFiltersArray);
+            entryTypeFilterString = mergeFilter(entryTypeFiltersArray);
+            entererRoleFilterString = mergeFilter(entererRoleFiltersArray);
+            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? '[ft:query(., "' + q.query + '")]' : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) ' + ' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])' + ' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")' + ' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
 
             //personName
             + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "' + q.person.toLowerCase() + '")' : '')
 
             //copies
+            + entererRoleFilterString + entryTypeFilterString + volumeFilterString
 
-            //minDate
-
-            //maxDate
+            //minDate & maxDate
             + dateFiltersString
 
             //minFees
@@ -113,7 +166,7 @@ var advSearch = exports.advSearch = function () {
               }
             }));
 
-          case 14:
+          case 54:
           case 'end':
             return _context.stop();
         }
@@ -127,7 +180,7 @@ var advSearch = exports.advSearch = function () {
 }();
 
 var textSearch = exports.textSearch = function () {
-  var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(query, page, limit, orderField, direction) {
+  var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(query, page, limit, orderField, direction) {
     var post_query;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -174,7 +227,7 @@ var textSearch = exports.textSearch = function () {
 }();
 
 var getAllEntriesOrdered = exports.getAllEntriesOrdered = function () {
-  var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
+  var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
     var query;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -207,7 +260,7 @@ var getAllEntriesOrdered = exports.getAllEntriesOrdered = function () {
 }();
 
 var getAllPeople = exports.getAllPeople = function () {
-  var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4() {
+  var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -237,7 +290,7 @@ var getAllPeople = exports.getAllPeople = function () {
 }();
 
 var getAllEntries = exports.getAllEntries = function () {
-  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5() {
+  var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
     return _regenerator2.default.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -266,7 +319,7 @@ var getAllEntries = exports.getAllEntries = function () {
 }();
 
 var getEntry = exports.getEntry = function () {
-  var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(entryID) {
+  var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6(entryID) {
     var query;
     return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
@@ -302,7 +355,7 @@ var getEntry = exports.getEntry = function () {
 }();
 
 var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
-  var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(page, limit) {
+  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(page, limit) {
     var query;
     return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
@@ -398,5 +451,14 @@ function translateOrderingField(sortField) {
       xmlField = '@xml:id';
   }
   return xmlField;
+}
+
+function mergeFilter(filterArray) {
+  var filterString = "";
+  if (filterArray.length > 0) {
+
+    filterString = "and ( " + filterArray.join(" or ") + " ) ";
+  }
+  return filterString;
 }
 //# sourceMappingURL=existDB.js.map

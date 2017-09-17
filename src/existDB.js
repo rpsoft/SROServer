@@ -24,6 +24,15 @@ function translateOrderingField(sortField){
       return xmlField;
 }
 
+function mergeFilter(filterArray){
+    var filterString = ""
+    if ( filterArray.length > 0 ) {
+
+      filterString = "and ( "+ filterArray.join(" or ") +" ) "
+
+    }
+    return filterString;
+}
 
 export async function advSearch(q){
   //  args, page, limit, orderField, direction
@@ -36,6 +45,12 @@ export async function advSearch(q){
 
     var dateFiltersArray = [];
 
+    var volumeFiltersArray = [];
+
+    var entryTypeFiltersArray = [];
+
+    var entererRoleFiltersArray = [];
+
     for ( var f in filters ){
 
       var filterKey = filters[f].split("_")[0]
@@ -47,39 +62,67 @@ export async function advSearch(q){
             var maxDate = filterValue.split("-")[1]+"-12-31"
 
             dateFiltersArray.push ("($currentDate >= xs:date('"+minDate+"') and $currentDate <= xs:date('"+maxDate+"'))")
+            break;
+        case "volume":
+            switch (filterValue) {
+              case "A":
+                  volumeFiltersArray.push("($rawCode < 1265)")
+                break;
+              case "B":
+                  volumeFiltersArray.push("(($rawCode > 1264) and ($rawCode < 3635))")
+                break;
+              case "C":
+                  volumeFiltersArray.push("($rawCode > 3634)")
+                break;
+            }
+
+        case "entryType":
+            switch (filterValue) {
+              case "Entered":
+                  entryTypeFiltersArray.push("($enteredNotes > 0)")
+                break;
+              case "Stock":
+                  entryTypeFiltersArray.push("($stockNotes > 0)")
+                break;
+            }
+        case "entererRole":
+            switch(filterValue) {
+              case "Stationer":
+                entererRoleFiltersArray.push("$isStationer")
+                break;
+              case "Non-Stationer":
+                entererRoleFiltersArray.push("not($isStationer )")
+                break;
+            }
+
 
       }
-
-
-
-
-
     }
 
-    console.log(dateFiltersArray.join(" or "))
-    var dateFiltersString = ""
-    if ( dateFiltersArray.length > 0 ) {
-
-      dateFiltersString = "and ( "+ dateFiltersArray.join(" or ") +" ) "
-
-    }
-
+    // console.log(dateFiltersArray.join(" or "))
+    var dateFiltersString = mergeFilter(dateFiltersArray)
+    var volumeFilterString = mergeFilter(volumeFiltersArray)
+    var entryTypeFilterString = mergeFilter(entryTypeFiltersArray)
+    var entererRoleFilterString = mergeFilter(entererRoleFiltersArray)
 
     var query  = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";'
     +' let $pageLimit as xs:decimal := '+q.limit+' let $page as xs:decimal := '+q.page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div'
     + (q.query ? '[ft:query(., "'+q.query+'")]' : '')
-    +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
+    +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) '
+    +' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])'
+    +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
+    +' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
 
     //personName
     + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
 
     //copies
+    + entererRoleFilterString
+    + entryTypeFilterString
+    + volumeFilterString
 
-    //minDate
-
-    //maxDate
+    //minDate & maxDate
     + dateFiltersString
-
 
     //minFees
     + (q.minFees ? ' and data($hit//num[@type="totalPence"]/@value) >= '+q.minFees+' ' : '')
