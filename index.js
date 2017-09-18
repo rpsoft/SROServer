@@ -326,20 +326,54 @@ app.get('/api/allEntriesPaged', function () {
             console.log(req.query.page);
 
             if (!req.query.page) {
-              _context7.next = 6;
+              _context7.next = 19;
               break;
             }
 
-            _context7.next = 4;
+            if (!req.query.sortField) {
+              _context7.next = 14;
+              break;
+            }
+
+            if (req.query.direction.indexOf("undefined") > -1) {
+              _context7.next = 9;
+              break;
+            }
+
+            _context7.next = 6;
+            return EXISTDB.getAllEntriesPaged(req.query.page, req.query.limit, req.query.sortField, req.query.direction);
+
+          case 6:
+            xmlResult = _context7.sent;
+            _context7.next = 12;
+            break;
+
+          case 9:
+            _context7.next = 11;
+            return EXISTDB.getAllEntriesPaged(req.query.page, req.query.limit, req.query.sortField, "ascending");
+
+          case 11:
+            xmlResult = _context7.sent;
+
+          case 12:
+            _context7.next = 17;
+            break;
+
+          case 14:
+            _context7.next = 16;
             return EXISTDB.getAllEntriesPaged(req.query.page, req.query.limit);
 
-          case 4:
+          case 16:
             xmlResult = _context7.sent;
+
+          case 17:
+
+            res.send(xmlResult);
 
             // console.log(xmlResult)
             res.send(xmlResult);
 
-          case 6:
+          case 19:
           case 'end':
             return _context7.stop();
         }

@@ -75,16 +75,22 @@ export async function advSearch(q){
                   volumeFiltersArray.push("($rawCode > 3634)")
                 break;
             }
+            break;
 
         case "entryType":
-            switch (filterValue) {
-              case "Entered":
-                  entryTypeFiltersArray.push("($enteredNotes > 0)")
-                break;
-              case "Stock":
-                  entryTypeFiltersArray.push("($stockNotes > 0)")
-                break;
-            }
+
+            entryTypeFiltersArray.push("($"+filterValue.toLowerCase()+"notes > 0)")
+
+            break
+
+            // switch (filterValue) {
+            //   case "Entered":
+            //       entryTypeFiltersArray.push("($enteredNotes > 0)")
+            //     break;
+            //   case "Stock":
+            //       entryTypeFiltersArray.push("($stockNotes > 0)")
+            //     break;
+            // }
         case "entererRole":
             switch(filterValue) {
               case "Stationer":
@@ -95,7 +101,7 @@ export async function advSearch(q){
                 break;
             }
 
-
+            break;
       }
     }
 
@@ -105,16 +111,42 @@ export async function advSearch(q){
     var entryTypeFilterString = mergeFilter(entryTypeFiltersArray)
     var entererRoleFilterString = mergeFilter(entererRoleFiltersArray)
 
+    var statusTypes = [ "annotated", "cancelled", "entered", "incomplete", "notPrinted", "other", "reassigned", "shared", "stock", "unknown" ]
+    var statusGatheringString = statusTypes.map( (v,i) => { return  'let $'+v.toLowerCase()+ 'notes := count($hit//note[@subtype="'+v+'"])' }  ).join(" ")
+
+    console.log(statusGatheringString)
+
+    console.log(entryTypeFilterString)
+
+    var advSearch_dates = ""
+
+    if(q.minDate && q.maxDate){
+      advSearch_dates = "and ( ($currentDate >= xs:date('"+q.minDate+"') and $currentDate <= xs:date('"+q.maxDate+"')) )";
+    } else if( q.minDate ){
+      advSearch_dates = "and ( ($currentDate >= xs:date('"+q.minDate+"') ) )";
+    } else if( q.maxDate ){
+      advSearch_dates = "and ( ($currentDate <= xs:date('"+q.maxDate+"') ) )";
+    }
+
+console.log("minDate: "+q.minDate)
+console.log("maxDate: "+q.maxDate)
+
     var query  = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";'
     +' let $pageLimit as xs:decimal := '+q.limit+' let $page as xs:decimal := '+q.page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div'
     + (q.query ? '[ft:query(., "'+q.query+'")]' : '')
     +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) '
-    +' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])'
+    // +' let $stockNotes := count($hit//note[@subtype="stock"]) '
+    // +' let $enteredNotes := count($hit//note[@subtype="entered"])'
+    + statusGatheringString
+
+
     +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
     +' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
 
     //personName
     + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
+
+    +" "+ advSearch_dates+" "
 
     //copies
     + entererRoleFilterString
@@ -141,7 +173,11 @@ export async function advSearch(q){
     //query = query + ' and contains($people//role/text(), "enterer") '
 
     if ( q.sortField ){
-      query = query + ' order by $hit//'+translateOrderingField(q.orderField).trim()+' '+q.direction+' '
+      if ( q.sortField == "date" ){
+        query = query + ' order by $currentDate '+q.direction+' '
+      }else {
+        query = query + ' order by $hit//'+translateOrderingField(q.orderField).trim()+' '+q.direction+' '
+      }
     } else {
       query = query + ' order by $score descending '
     }
@@ -178,7 +214,11 @@ export async function textSearch(query, page, limit, orderField, direction){
 
 
     if ( orderField ){
-      query = query + ' order by $hit//'+orderField.trim()+' '+direction+' '
+      if( orderField.indexOf("date") > -1 ){
+        query = query + ' order by $currentDate '+direction+' '
+      } else {
+        query = query + ' order by $hit//'+orderField.trim()+' '+direction+' '
+      }
     } else {
       query = query + ' order by $score descending '
     }
@@ -205,6 +245,7 @@ export async function textSearch(query, page, limit, orderField, direction){
   }
 
   export async function getAllEntriesOrdered(){
+
 
       var query = 'xquery version "3.0";'+
                   'declare default element namespace "http://www.tei-c.org/ns/1.0";'+
@@ -286,9 +327,27 @@ export async function textSearch(query, page, limit, orderField, direction){
 
         }
 
-      export async function getAllEntriesPaged(page,limit){
+      export async function getAllEntriesPaged(page,limit,orderField, direction){
+        console.log("USAMOS ESTE: "+orderField+" -- "+direction)
 
-        var query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; let $pageLimit as xs:decimal := '+limit+' let $page as xs:decimal := '+page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div where $hit/@type="entry" return <comp><doc>{$hit}</doc></comp> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries> { for $hita in array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn)) let $hit := $hita/doc return <entry> <docid>{data($hit//@xml:id)}</docid> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <people>{ for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> } </people> {$hit} </entry> } </entries> </results>';
+        var query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; let $pageLimit as xs:decimal := '+limit+' let $page as xs:decimal := '+page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div '
+        +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) '
+        +' where $hit/@type="entry" '
+
+        if ( orderField ){
+          if( orderField.indexOf("date") > -1 ){
+            query = query + ' order by $currentDate '+direction+' '
+          } else if( orderField.indexOf("volume") > -1 ){
+            query = query + ' order by $rawCode '+direction+' '
+          } else {
+            query = query + ' order by $hit//'+orderField.trim()+' '+direction+' '
+          }
+        } else {
+          query = query + ' order by $score descending '
+        }
+
+        query = query +'return <comp><doc>{$hit}</doc></comp> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries> { for $hita in array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn)) let $hit := $hita/doc return <entry> <docid>{data($hit//@xml:id)}</docid> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <people>{ for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> } </people> {$hit} </entry> } </entries> </results>';
+
 
         console.log(query);
 

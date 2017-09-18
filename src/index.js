@@ -159,7 +159,24 @@ app.get('/api/allPeople',async function(req,res){
 app.get('/api/allEntriesPaged',async function(req,res){
   console.log(req.query.page)
   if (req.query.page){
-    var xmlResult = await EXISTDB.getAllEntriesPaged(req.query.page,req.query.limit)
+    var xmlResult
+
+    var xmlResult;
+     if ( req.query.sortField ) {
+       if ( !(req.query.direction.indexOf("undefined") > -1) ){
+         xmlResult = await EXISTDB.getAllEntriesPaged(req.query.page,req.query.limit,req.query.sortField,req.query.direction)
+       } else {
+         xmlResult = await EXISTDB.getAllEntriesPaged(req.query.page,req.query.limit,req.query.sortField,"ascending")
+       }
+     }else {
+       xmlResult = await EXISTDB.getAllEntriesPaged(req.query.page,req.query.limit)
+     }
+
+    res.send(xmlResult)
+
+
+
+
     // console.log(xmlResult)
      res.send(xmlResult)
   }
