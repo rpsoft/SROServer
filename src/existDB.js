@@ -139,13 +139,14 @@ console.log("maxDate: "+q.maxDate)
     // +' let $enteredNotes := count($hit//note[@subtype="entered"])'
     + statusGatheringString
 
-
+    +' let $docid := data($hit//@xml:id)'
     +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
     +' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
 
     //personName
     + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
 
+    + (q.entry ? 'and (contains($docid,"'+q.entry+'"))' : "")
     +" "+ advSearch_dates+" "
 
     //copies
