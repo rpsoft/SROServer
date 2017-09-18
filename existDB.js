@@ -23,7 +23,7 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var advSearch = exports.advSearch = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(q) {
-    var filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, query, post_query;
+    var filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, statusTypes, statusGatheringString, advSearch_dates, query, post_query;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -45,7 +45,7 @@ var advSearch = exports.advSearch = function () {
 
           case 8:
             if ((_context.t1 = _context.t0()).done) {
-              _context.next = 44;
+              _context.next = 41;
               break;
             }
 
@@ -53,7 +53,7 @@ var advSearch = exports.advSearch = function () {
             filterKey = filters[f].split("_")[0];
             filterValue = filters[f].split("_")[1];
             _context.t2 = filterKey;
-            _context.next = _context.t2 === "date" ? 15 : _context.t2 === "volume" ? 19 : _context.t2 === "entryType" ? 28 : _context.t2 === "entererRole" ? 35 : 42;
+            _context.next = _context.t2 === "date" ? 15 : _context.t2 === "volume" ? 19 : _context.t2 === "entryType" ? 29 : _context.t2 === "entererRole" ? 31 : 39;
             break;
 
           case 15:
@@ -62,7 +62,7 @@ var advSearch = exports.advSearch = function () {
 
 
             dateFiltersArray.push("($currentDate >= xs:date('" + minDate + "') and $currentDate <= xs:date('" + maxDate + "'))");
-            return _context.abrupt('break', 42);
+            return _context.abrupt('break', 39);
 
           case 19:
             _context.t3 = filterValue;
@@ -82,46 +82,72 @@ var advSearch = exports.advSearch = function () {
             return _context.abrupt('break', 28);
 
           case 28:
-            _context.t4 = filterValue;
-            _context.next = _context.t4 === "Entered" ? 31 : _context.t4 === "Stock" ? 33 : 35;
-            break;
+            return _context.abrupt('break', 39);
+
+          case 29:
+
+            entryTypeFiltersArray.push("($" + filterValue.toLowerCase() + "notes > 0)");
+
+            return _context.abrupt('break', 39);
 
           case 31:
-            entryTypeFiltersArray.push("($enteredNotes > 0)");
-            return _context.abrupt('break', 35);
-
-          case 33:
-            entryTypeFiltersArray.push("($stockNotes > 0)");
-            return _context.abrupt('break', 35);
-
-          case 35:
-            _context.t5 = filterValue;
-            _context.next = _context.t5 === "Stationer" ? 38 : _context.t5 === "Non-Stationer" ? 40 : 42;
+            _context.t4 = filterValue;
+            _context.next = _context.t4 === "Stationer" ? 34 : _context.t4 === "Non-Stationer" ? 36 : 38;
             break;
 
-          case 38:
+          case 34:
             entererRoleFiltersArray.push("$isStationer");
-            return _context.abrupt('break', 42);
+            return _context.abrupt('break', 38);
 
-          case 40:
+          case 36:
             entererRoleFiltersArray.push("not($isStationer )");
-            return _context.abrupt('break', 42);
+            return _context.abrupt('break', 38);
 
-          case 42:
+          case 38:
+            return _context.abrupt('break', 39);
+
+          case 39:
             _context.next = 8;
             break;
 
-          case 44:
+          case 41:
 
             // console.log(dateFiltersArray.join(" or "))
             dateFiltersString = mergeFilter(dateFiltersArray);
             volumeFilterString = mergeFilter(volumeFiltersArray);
             entryTypeFilterString = mergeFilter(entryTypeFiltersArray);
             entererRoleFilterString = mergeFilter(entererRoleFiltersArray);
-            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? '[ft:query(., "' + q.query + '")]' : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) ' + ' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])' + ' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")' + ' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
+            statusTypes = ["annotated", "cancelled", "entered", "incomplete", "notPrinted", "other", "reassigned", "shared", "stock", "unknown"];
+            statusGatheringString = statusTypes.map(function (v, i) {
+              return 'let $' + v.toLowerCase() + 'notes := count($hit//note[@subtype="' + v + '"])';
+            }).join(" ");
+
+
+            console.log(statusGatheringString);
+
+            console.log(entryTypeFilterString);
+
+            advSearch_dates = "";
+
+
+            if (q.minDate && q.maxDate) {
+              advSearch_dates = "and ( ($currentDate >= xs:date('" + q.minDate + "') and $currentDate <= xs:date('" + q.maxDate + "')) )";
+            } else if (q.minDate) {
+              advSearch_dates = "and ( ($currentDate >= xs:date('" + q.minDate + "') ) )";
+            } else if (q.maxDate) {
+              advSearch_dates = "and ( ($currentDate <= xs:date('" + q.maxDate + "') ) )";
+            }
+
+            console.log("minDate: " + q.minDate);
+            console.log("maxDate: " + q.maxDate);
+
+            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? '[ft:query(., "' + q.query + '")]' : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) '
+            // +' let $stockNotes := count($hit//note[@subtype="stock"]) '
+            // +' let $enteredNotes := count($hit//note[@subtype="entered"])'
+            + statusGatheringString + ' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")' + ' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
 
             //personName
-            + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "' + q.person.toLowerCase() + '")' : '')
+            + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "' + q.person.toLowerCase() + '")' : '') + " " + advSearch_dates + " "
 
             //copies
             + entererRoleFilterString + entryTypeFilterString + volumeFilterString
@@ -144,7 +170,11 @@ var advSearch = exports.advSearch = function () {
             //query = query + ' and contains($people//role/text(), "enterer") '
 
             if (q.sortField) {
-              query = query + ' order by $hit//' + translateOrderingField(q.orderField).trim() + ' ' + q.direction + ' ';
+              if (q.sortField == "date") {
+                query = query + ' order by $currentDate ' + q.direction + ' ';
+              } else {
+                query = query + ' order by $hit//' + translateOrderingField(q.orderField).trim() + ' ' + q.direction + ' ';
+              }
             } else {
               query = query + ' order by $score descending ';
             }
@@ -166,7 +196,7 @@ var advSearch = exports.advSearch = function () {
               }
             }));
 
-          case 54:
+          case 59:
           case 'end':
             return _context.stop();
         }
@@ -191,7 +221,11 @@ var textSearch = exports.textSearch = function () {
 
 
             if (orderField) {
-              query = query + ' order by $hit//' + orderField.trim() + ' ' + direction + ' ';
+              if (orderField.indexOf("date") > -1) {
+                query = query + ' order by $currentDate ' + direction + ' ';
+              } else {
+                query = query + ' order by $hit//' + orderField.trim() + ' ' + direction + ' ';
+              }
             } else {
               query = query + ' order by $score descending ';
             }
@@ -355,14 +389,30 @@ var getEntry = exports.getEntry = function () {
 }();
 
 var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
-  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(page, limit) {
+  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(page, limit, orderField, direction) {
     var query;
     return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
           case 0:
-            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; let $pageLimit as xs:decimal := ' + limit + ' let $page as xs:decimal := ' + page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div where $hit/@type="entry" return <comp><doc>{$hit}</doc></comp> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries> { for $hita in array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn)) let $hit := $hita/doc return <entry> <docid>{data($hit//@xml:id)}</docid> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <people>{ for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> } </people> {$hit} </entry> } </entries> </results>';
+            console.log("USAMOS ESTE: " + orderField + " -- " + direction);
 
+            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; let $pageLimit as xs:decimal := ' + limit + ' let $page as xs:decimal := ' + page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div ' + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) ' + ' where $hit/@type="entry" ';
+
+
+            if (orderField) {
+              if (orderField.indexOf("date") > -1) {
+                query = query + ' order by $currentDate ' + direction + ' ';
+              } else if (orderField.indexOf("volume") > -1) {
+                query = query + ' order by $rawCode ' + direction + ' ';
+              } else {
+                query = query + ' order by $hit//' + orderField.trim() + ' ' + direction + ' ';
+              }
+            } else {
+              query = query + ' order by $score descending ';
+            }
+
+            query = query + 'return <comp><doc>{$hit}</doc></comp> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries> { for $hita in array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn)) let $hit := $hita/doc return <entry> <docid>{data($hit//@xml:id)}</docid> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <people>{ for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> } </people> {$hit} </entry> } </entries> </results>';
 
             console.log(query);
 
@@ -380,7 +430,7 @@ var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
               }
             }));
 
-          case 3:
+          case 6:
           case 'end':
             return _context7.stop();
         }
@@ -388,7 +438,7 @@ var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
     }, _callee7, this);
   }));
 
-  return function getAllEntriesPaged(_x8, _x9) {
+  return function getAllEntriesPaged(_x8, _x9, _x10, _x11) {
     return _ref7.apply(this, arguments);
   };
 }();
