@@ -23,7 +23,7 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 
 var main = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
+  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee() {
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -85,7 +85,7 @@ app.get('/api/', function (req, res) {
 });
 
 app.get('/api/staticPage', function () {
-  var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(req, res) {
+  var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(req, res) {
     var url;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -135,7 +135,7 @@ app.get('/api/staticPage', function () {
 }());
 
 app.get('/api/data', function () {
-  var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3(req, res) {
+  var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3(req, res) {
     var xmlResult;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -200,7 +200,7 @@ app.get('/api/data', function () {
 }());
 
 app.get('/api/entry', function () {
-  var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4(req, res) {
+  var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4(req, res) {
     var xmlResult;
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
@@ -233,7 +233,7 @@ app.get('/api/entry', function () {
 }());
 
 app.get('/api/advSearch', function () {
-  var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5(req, res) {
+  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5(req, res) {
     var xmlResult;
     return _regenerator2.default.wrap(function _callee5$(_context5) {
       while (1) {
@@ -263,7 +263,7 @@ app.get('/api/advSearch', function () {
 }());
 
 app.get('/api/allPeople', function () {
-  var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6(req, res) {
+  var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(req, res) {
     var xmlResult;
     return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
@@ -317,7 +317,7 @@ app.get('/api/allPeople', function () {
 // });
 
 app.get('/api/allEntriesPaged', function () {
-  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(req, res) {
+  var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(req, res) {
     var xmlResult;
     return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
@@ -353,7 +353,7 @@ app.get('/api/allEntriesPaged', function () {
 }());
 
 app.get('/api/allEntries', function () {
-  var _ref8 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee8(req, res) {
+  var _ref8 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee8(req, res) {
     var xmlResult;
     return _regenerator2.default.wrap(function _callee8$(_context8) {
       while (1) {

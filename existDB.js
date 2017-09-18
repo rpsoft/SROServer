@@ -22,7 +22,7 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var advSearch = exports.advSearch = function () {
-  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(q) {
+  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(q) {
     var filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, query, post_query;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
@@ -180,7 +180,7 @@ var advSearch = exports.advSearch = function () {
 }();
 
 var textSearch = exports.textSearch = function () {
-  var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(query, page, limit, orderField, direction) {
+  var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(query, page, limit, orderField, direction) {
     var post_query;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -227,7 +227,7 @@ var textSearch = exports.textSearch = function () {
 }();
 
 var getAllEntriesOrdered = exports.getAllEntriesOrdered = function () {
-  var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
+  var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
     var query;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -260,7 +260,7 @@ var getAllEntriesOrdered = exports.getAllEntriesOrdered = function () {
 }();
 
 var getAllPeople = exports.getAllPeople = function () {
-  var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
+  var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4() {
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -290,7 +290,7 @@ var getAllPeople = exports.getAllPeople = function () {
 }();
 
 var getAllEntries = exports.getAllEntries = function () {
-  var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
+  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5() {
     return _regenerator2.default.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -319,7 +319,7 @@ var getAllEntries = exports.getAllEntries = function () {
 }();
 
 var getEntry = exports.getEntry = function () {
-  var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6(entryID) {
+  var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(entryID) {
     var query;
     return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
@@ -355,7 +355,7 @@ var getEntry = exports.getEntry = function () {
 }();
 
 var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
-  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(page, limit) {
+  var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(page, limit) {
     var query;
     return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
