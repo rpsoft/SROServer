@@ -22,15 +22,39 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var advSearch = exports.advSearch = function () {
-  var _ref = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee(q) {
-    var filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, statusTypes, statusGatheringString, advSearch_dates, query, post_query;
+  var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(q) {
+    var queryCode, i, filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, advSearch_dates, macroFilterArray, feesArray, macroFilter, query, post_query;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
           case 0:
             //  args, page, limit, orderField, direction
-            console.log((0, _stringify2.default)(q));
+            queryCode = Base64.encode((0, _stringify2.default)(q));
 
+            //console.log("QUERY: "+Base64.encode(JSON.stringify(q)))
+
+            i = 0;
+
+          case 2:
+            if (!(i < bufferSize)) {
+              _context.next = 9;
+              break;
+            }
+
+            if (!(queryBuffer.get(i) && queryBuffer.get(i).queryCode == queryCode)) {
+              _context.next = 6;
+              break;
+            }
+
+            console.log("Reusing buffered search: " + queryBuffer.length);
+            return _context.abrupt('return', queryBuffer.get(i).data);
+
+          case 6:
+            i++;
+            _context.next = 2;
+            break;
+
+          case 9:
             filters = eval(q.filters);
 
 
@@ -43,9 +67,9 @@ var advSearch = exports.advSearch = function () {
             entererRoleFiltersArray = [];
             _context.t0 = _regenerator2.default.keys(filters);
 
-          case 8:
+          case 16:
             if ((_context.t1 = _context.t0()).done) {
-              _context.next = 41;
+              _context.next = 50;
               break;
             }
 
@@ -53,77 +77,77 @@ var advSearch = exports.advSearch = function () {
             filterKey = filters[f].split("_")[0];
             filterValue = filters[f].split("_")[1];
             _context.t2 = filterKey;
-            _context.next = _context.t2 === "date" ? 15 : _context.t2 === "volume" ? 19 : _context.t2 === "entryType" ? 29 : _context.t2 === "entererRole" ? 31 : 39;
+            _context.next = _context.t2 === "date" ? 23 : _context.t2 === "volume" ? 28 : _context.t2 === "entryType" ? 38 : _context.t2 === "entererRole" ? 40 : 48;
             break;
 
-          case 15:
+          case 23:
             minDate = filterValue.split("-")[0] + "-01-01";
             maxDate = filterValue.split("-")[1] + "-12-31";
 
 
-            dateFiltersArray.push("($currentDate >= xs:date('" + minDate + "') and $currentDate <= xs:date('" + maxDate + "'))");
-            return _context.abrupt('break', 39);
+            dateFiltersArray.push("(.//ab[@type='metadata']/date/@when >= xs:date('" + minDate + "') and .//ab[@type='metadata']/date/@when <= xs:date('" + maxDate + "'))");
+            dateFiltersArray.push("(.//ab[@type='metadata']/date/@notBefore >= xs:date('" + minDate + "') and .//ab[@type='metadata']/date/@notBefore <= xs:date('" + maxDate + "'))");
 
-          case 19:
-            _context.t3 = filterValue;
-            _context.next = _context.t3 === "A" ? 22 : _context.t3 === "B" ? 24 : _context.t3 === "C" ? 26 : 28;
-            break;
+            //dateFiltersArray.push ("( ( (.//ab[@type='metadata']/date/@when >= xs:date('"+minDate+"')) or (.//ab[@type='metadata']/date/@notBefore >= xs:date('"+minDate+"')) ) and ((.//ab[@type='metadata']/date/@when <= xs:date('"+maxDate+"') ) or (.//ab[@type='metadata']/date/@notBefore <= xs:date('"+maxDate+"')) ) )")
 
-          case 22:
-            volumeFiltersArray.push("($rawCode < 1265)");
-            return _context.abrupt('break', 28);
-
-          case 24:
-            volumeFiltersArray.push("(($rawCode > 1264) and ($rawCode < 3635))");
-            return _context.abrupt('break', 28);
-
-          case 26:
-            volumeFiltersArray.push("($rawCode > 3634)");
-            return _context.abrupt('break', 28);
+            return _context.abrupt('break', 48);
 
           case 28:
-            return _context.abrupt('break', 39);
-
-          case 29:
-
-            entryTypeFiltersArray.push("($" + filterValue.toLowerCase() + "notes > 0)");
-
-            return _context.abrupt('break', 39);
+            _context.t3 = filterValue;
+            _context.next = _context.t3 === "A" ? 31 : _context.t3 === "B" ? 33 : _context.t3 === "C" ? 35 : 37;
+            break;
 
           case 31:
-            _context.t4 = filterValue;
-            _context.next = _context.t4 === "Stationer" ? 34 : _context.t4 === "Non-Stationer" ? 36 : 38;
-            break;
+            volumeFiltersArray.push('(xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) < 1265)');
+            return _context.abrupt('break', 37);
 
-          case 34:
-            entererRoleFiltersArray.push("$isStationer");
-            return _context.abrupt('break', 38);
+          case 33:
+            volumeFiltersArray.push('((xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) > 1264) and (xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) < 3635))');
+            return _context.abrupt('break', 37);
 
-          case 36:
-            entererRoleFiltersArray.push("not($isStationer )");
-            return _context.abrupt('break', 38);
+          case 35:
+            volumeFiltersArray.push('(xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) > 3634)');
+            return _context.abrupt('break', 37);
+
+          case 37:
+            return _context.abrupt('break', 48);
 
           case 38:
-            return _context.abrupt('break', 39);
 
-          case 39:
-            _context.next = 8;
+            entryTypeFiltersArray.push('(count(.//note[@subtype="' + (filterValue.toLowerCase() == "notprinted" ? "notPrinted" : filterValue.toLowerCase()) + '"]) > 0)');
+
+            return _context.abrupt('break', 48);
+
+          case 40:
+            _context.t4 = filterValue;
+            _context.next = _context.t4 === "Stationer" ? 43 : _context.t4 === "Non-Stationer" ? 45 : 47;
             break;
 
-          case 41:
+          case 43:
+            entererRoleFiltersArray.push("contains(data(.//persName[contains(@role, 'enterer')]/@role),'stationer')");
+            return _context.abrupt('break', 47);
 
-            // console.log(dateFiltersArray.join(" or "))
+          case 45:
+            entererRoleFiltersArray.push("not(contains(data(.//persName[contains(@role, 'enterer')]/@role),'stationer'))");
+            return _context.abrupt('break', 47);
+
+          case 47:
+            return _context.abrupt('break', 48);
+
+          case 48:
+            _context.next = 16;
+            break;
+
+          case 50:
             dateFiltersString = mergeFilter(dateFiltersArray);
             volumeFilterString = mergeFilter(volumeFiltersArray);
             entryTypeFilterString = mergeFilter(entryTypeFiltersArray);
             entererRoleFilterString = mergeFilter(entererRoleFiltersArray);
-            statusTypes = ["annotated", "cancelled", "entered", "incomplete", "notPrinted", "other", "reassigned", "shared", "stock", "unknown"];
-            statusGatheringString = statusTypes.map(function (v, i) {
-              return 'let $' + v.toLowerCase() + 'notes := count($hit//note[@subtype="' + v + '"])';
-            }).join(" ");
 
+            // var statusTypes = [ "annotated", "cancelled", "entered", "incomplete", "notPrinted", "other", "reassigned", "shared", "stock", "unknown" ]
+            // var statusGatheringString = statusTypes.map( (v,i) => { return  'let $'+v.toLowerCase()+ 'notes := count($hit//note[@subtype="'+v+'"])' }  ).join(" ")
 
-            console.log(statusGatheringString);
+            // console.log(statusGatheringString)
 
             console.log(entryTypeFilterString);
 
@@ -141,33 +165,62 @@ var advSearch = exports.advSearch = function () {
             console.log("minDate: " + q.minDate);
             console.log("maxDate: " + q.maxDate);
 
-            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? '[ft:query(., "' + q.query + '")]' : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) '
-            // +' let $stockNotes := count($hit//note[@subtype="stock"]) '
-            // +' let $enteredNotes := count($hit//note[@subtype="entered"])'
-            + statusGatheringString + ' let $docid := data($hit//@xml:id)' + ' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")' + ' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
+            console.log("hello:" + advSearch_dates);
+
+            macroFilterArray = [];
+
+
+            dateFiltersString.length > 0 ? macroFilterArray.push("[" + dateFiltersString + "]") : "";
+            volumeFilterString.length > 0 ? macroFilterArray.push("[" + volumeFilterString + "]") : "";
+            entererRoleFilterString.length > 0 ? macroFilterArray.push("[" + entererRoleFilterString + "]") : "";
+            entryTypeFilterString.length > 0 ? macroFilterArray.push("[" + entryTypeFilterString + "]") : "";
+
+            feesArray = [];
+
+            q.minFees ? feesArray.push(' (data(.//num[@type="totalPence"]/@value) >= ' + q.minFees + ' )') : '';
+            q.maxFees ? feesArray.push(' (data(.//num[@type="totalPence"]/@value) <= ' + q.maxFees + ' )') : '';
+
+            q.person ? macroFilterArray.push('[contains(lower-case(string-join(.//persName//text(),"")), "' + q.person.toLowerCase() + '") ]') : "";
+
+            q.entry ? macroFilterArray.push('[.//@xml:id = "' + q.entry + '"]') : "";
+
+            feesArray.length > 0 ? macroFilterArray.push(" [ " + feesArray.join(" and ") + " ] ") : "";
+
+            macroFilter = macroFilterArray.join("");
+
+
+            console.log("MAC: " + macroFilter);
+
+            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? '[ft:query(., "' + q.query + '")]' : '') + (macroFilter ? macroFilter : "") + ' let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) '
+
+            // + statusGatheringString
+
+            // +' let $docid := data($hit//@xml:id)'
+            // +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
+            + ' where $hit/@type="entry" ';
 
             //personName
-            + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "' + q.person.toLowerCase() + '")' : '') + (q.entry ? 'and (contains($docid,"' + q.entry + '"))' : "") + " " + advSearch_dates + " "
+            // + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
+            //
+            // + (q.entry ? 'and (contains($docid,"'+q.entry+'"))' : "")
+            // +" "+ advSearch_dates+" "
 
             //copies
-            + entererRoleFilterString + entryTypeFilterString + volumeFilterString
+            // + entererRoleFilterString
+            // + entryTypeFilterString
+            //  + volumeFilterString
 
             //minDate & maxDate
-            + dateFiltersString
+            //  + dateFiltersString
 
             //minFees
-            + (q.minFees ? ' and data($hit//num[@type="totalPence"]/@value) >= ' + q.minFees + ' ' : '')
-            //maxFees
-            + (q.maxFees ? ' and data($hit//num[@type="totalPence"]/@value) <= ' + q.maxFees + ' ' : '');
-
-            //entry
-
-            // FILTERS
+            // + (q.minFees ? ' and data($hit//num[@type="totalPence"]/@value) >= '+q.minFees+' ' : '')
+            // //maxFees
+            // + (q.maxFees ? ' and data($hit//num[@type="totalPence"]/@value) <= '+q.maxFees+' ' : '')
 
 
-            post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <people>{$people}</people> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
+            post_query = ' let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
 
-            //query = query + ' and contains($people//role/text(), "enterer") '
 
             if (q.sortField) {
               if (q.sortField == "date") {
@@ -176,7 +229,7 @@ var advSearch = exports.advSearch = function () {
                 query = query + ' order by $hit//' + translateOrderingField(q.orderField).trim() + ' ' + q.direction + ' ';
               }
             } else {
-              query = query + ' order by $score descending ';
+              query = query + ' order by $hit//@xml:id ascending ';
             }
 
             query = query + post_query;
@@ -188,7 +241,13 @@ var advSearch = exports.advSearch = function () {
 
               try {
                 db.query(query, { wrap: "no" }).then(function (result) {
-                  //  console.log('xQuery result:', result);
+
+                  if (queryBuffer.length >= bufferSize) {
+
+                    queryBuffer.shift();
+                  }
+
+                  queryBuffer.push({ queryCode: queryCode, data: result });
                   Resolve(result);
                 });
               } catch (error) {
@@ -196,7 +255,7 @@ var advSearch = exports.advSearch = function () {
               }
             }));
 
-          case 59:
+          case 79:
           case 'end':
             return _context.stop();
         }
@@ -210,7 +269,7 @@ var advSearch = exports.advSearch = function () {
 }();
 
 var textSearch = exports.textSearch = function () {
-  var _ref2 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee2(query, page, limit, orderField, direction) {
+  var _ref2 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee2(query, page, limit, orderField, direction) {
     var post_query;
     return _regenerator2.default.wrap(function _callee2$(_context2) {
       while (1) {
@@ -261,7 +320,7 @@ var textSearch = exports.textSearch = function () {
 }();
 
 var getAllEntriesOrdered = exports.getAllEntriesOrdered = function () {
-  var _ref3 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee3() {
+  var _ref3 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee3() {
     var query;
     return _regenerator2.default.wrap(function _callee3$(_context3) {
       while (1) {
@@ -294,7 +353,7 @@ var getAllEntriesOrdered = exports.getAllEntriesOrdered = function () {
 }();
 
 var getAllPeople = exports.getAllPeople = function () {
-  var _ref4 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee4() {
+  var _ref4 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee4() {
     return _regenerator2.default.wrap(function _callee4$(_context4) {
       while (1) {
         switch (_context4.prev = _context4.next) {
@@ -324,7 +383,7 @@ var getAllPeople = exports.getAllPeople = function () {
 }();
 
 var getAllEntries = exports.getAllEntries = function () {
-  var _ref5 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee5() {
+  var _ref5 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee5() {
     return _regenerator2.default.wrap(function _callee5$(_context5) {
       while (1) {
         switch (_context5.prev = _context5.next) {
@@ -353,7 +412,7 @@ var getAllEntries = exports.getAllEntries = function () {
 }();
 
 var getEntry = exports.getEntry = function () {
-  var _ref6 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee6(entryID) {
+  var _ref6 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee6(entryID) {
     var query;
     return _regenerator2.default.wrap(function _callee6$(_context6) {
       while (1) {
@@ -389,14 +448,39 @@ var getEntry = exports.getEntry = function () {
 }();
 
 var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
-  var _ref7 = (0, _asyncToGenerator3.default)(_regenerator2.default.mark(function _callee7(page, limit, orderField, direction) {
-    var query;
+  var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(page, limit, orderField, direction) {
+    var queryCode, i, query;
     return _regenerator2.default.wrap(function _callee7$(_context7) {
       while (1) {
         switch (_context7.prev = _context7.next) {
           case 0:
             console.log("USAMOS ESTE: " + orderField + " -- " + direction);
 
+            queryCode = Base64.encode(page + "-" + limit + "-" + orderField + "-" + direction);
+
+            //console.log("QUERY: "+Base64.encode(JSON.stringify(q)))
+
+            i = 0;
+
+          case 3:
+            if (!(i < bufferSize)) {
+              _context7.next = 9;
+              break;
+            }
+
+            if (!(queryBuffer.get(i) && queryBuffer.get(i).queryCode == queryCode)) {
+              _context7.next = 6;
+              break;
+            }
+
+            return _context7.abrupt('return', queryBuffer.get(i).data);
+
+          case 6:
+            i++;
+            _context7.next = 3;
+            break;
+
+          case 9:
             query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; let $pageLimit as xs:decimal := ' + limit + ' let $page as xs:decimal := ' + page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div ' + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) ' + ' where $hit/@type="entry" ';
 
 
@@ -421,6 +505,7 @@ var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
               try {
                 db.query(query, { wrap: "no" }).then(function (result) {
                   //console.log('xQuery result:', result);
+                  queryBuffer.push({ queryCode: queryCode, data: result });
                   Resolve(result);
                 }).catch(function (rejected) {
                   console.log(rejected);
@@ -430,7 +515,7 @@ var getAllEntriesPaged = exports.getAllEntriesPaged = function () {
               }
             }));
 
-          case 6:
+          case 14:
           case 'end':
             return _context7.stop();
         }
@@ -481,6 +566,11 @@ var _config = require('./config');
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var exist = require('easy-exist');
+var Base64 = require('js-base64').Base64;
+var Deque = require("double-ended-queue");
+
+var bufferSize = 20;
+var queryBuffer = new Deque(bufferSize);
 
 // connect
 var db = new exist.DB('http://localhost:8080', {
@@ -507,7 +597,7 @@ function mergeFilter(filterArray) {
   var filterString = "";
   if (filterArray.length > 0) {
 
-    filterString = "and ( " + filterArray.join(" or ") + " ) ";
+    filterString = filterArray.join(" or ");
   }
   return filterString;
 }

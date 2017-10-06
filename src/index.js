@@ -113,16 +113,23 @@ app.get('/api/entry',async function(req,res){
 
 app.get('/api/advSearch',async function(req,res){
 
-
-  //if (){
-  //  console.log(req.query)
+     console.log(req.query)
+     req.query.page = ((parseInt(req.query.page))+"").trim()
      var xmlResult;
 
-          xmlResult = await EXISTDB.advSearch(req.query)
-
+     xmlResult = await EXISTDB.advSearch(req.query)
 
      res.send(xmlResult)
-  //}
+
+     req.query.page = ((parseInt(req.query.page)+1)+"").trim() //This one is to buffer the next page :)
+     console.log(req.query)
+     xmlResult = await EXISTDB.advSearch(req.query)
+
+     req.query.page = ((parseInt(req.query.page)-2)+"").trim() //This one is to buffer the previous page :)
+     console.log(req.query)
+     if ( parseInt(req.query.page) > 0){
+       xmlResult = await EXISTDB.advSearch(req.query)
+     }
 });
 
 app.get('/api/allPeople',async function(req,res){
