@@ -51,7 +51,7 @@
     "less": "~2.7.1",
     "parse-domain": "~0.2.1",
     "php-node": "0.0.2",
-    "xml-js": "^1.0.2",
+    "xml-js": "^1.5.1",
     "xml-query": "^1.4.0",
     "xml-reader": "^2.4.3",
     "xml-splitter": "^1.2.1",

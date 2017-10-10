@@ -8,20 +8,6 @@ var _asyncToGenerator2 = require('babel-runtime/helpers/asyncToGenerator');
 
 var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
-//
-// var xs = new XMLSplitter('/exist:result/entries//entry')
-//
-//     xs.on('data', function(data) {
-//         cachedLastQuery.push(data);
-//
-//     })
-//
-//
-//     xs.on('end', function(counter) {
-//         console.log(counter+' slices !') // counts all the slices ever apparently!.
-//     })
-
-
 var main = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee() {
     return _regenerator2.default.wrap(function _callee$(_context) {
@@ -78,6 +64,7 @@ var XmlReader = require('xml-reader');
 var xmlQuery = require('xml-query');
 
 var cachedLastQuery = [];
+
 main();
 
 app.get('/api/', function (req, res) {
@@ -315,32 +302,6 @@ app.get('/api/allPeople', function () {
   };
 }());
 
-// app.get('/allEntries',async function(req,res){
-//
-//
-//   var xmlResult = await EXISTDB.getAllEntries()
-//
-//   const ast = XmlReader.parseSync(xmlResult);
-//
-//   const xq = xmlQuery(ast);
-//
-//   //xmlQuery(ast).children().children().each(node => console.log(node.text()));
-//   xmlQuery(ast).children().children().each(node => console.log("ENTRY:: "+xmlQuery(node).text()))
-//
-//
-//   // cachedLastQuery =[];
-//   // xs.parseString(xmlResult);
-//   // cachedLastQuery.map(function (item,i) {
-//   //
-//   //   console.log(item.div)
-//   //
-//   // })
-//   // console.log(cachedLastQuery)
-//
-//   res.send(xmlResult)
-//
-// });
-
 app.get('/api/allEntriesPaged', function () {
   var _ref7 = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee7(req, res) {
     var xmlResult;
@@ -351,7 +312,7 @@ app.get('/api/allEntriesPaged', function () {
             console.log(req.query.page);
 
             if (!req.query.page) {
-              _context7.next = 19;
+              _context7.next = 18;
               break;
             }
 
@@ -395,10 +356,7 @@ app.get('/api/allEntriesPaged', function () {
 
             res.send(xmlResult);
 
-            // console.log(xmlResult)
-            res.send(xmlResult);
-
-          case 19:
+          case 18:
           case 'end':
             return _context7.stop();
         }
@@ -424,16 +382,6 @@ app.get('/api/allEntries', function () {
           case 2:
             xmlResult = _context8.sent;
 
-
-            // const ast = XmlReader.parseSync(xmlResult);
-            //
-            // const xq = xmlQuery(ast);
-            //
-            // //xmlQuery(ast).children().children().each(node => console.log(node.text()));
-            // xmlQuery(ast).children().children().each(node => console.log("ENTRY:: "+xmlQuery(node).text()))
-
-            // res.send(convert.xml2json(xmlResult, {compact: true, spaces: 4}))
-
             res.send(xmlResult);
 
           case 4:
@@ -449,27 +397,7 @@ app.get('/api/allEntries', function () {
   };
 }());
 
-// app.get('/users/:userId/books/:bookId', function (req, res) {
-//   res.send(req.params)
-// })
-
 app.listen(6541, function () {
   console.log('Application Running on port 6541 ' + new Date().toISOString());
 });
-
-//
-// function getUrl(message){
-//   if ( message == undefined) {return ""};
-//   var expression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
-//   var regex = new RegExp(expression);
-//   var t = message;
-//
-//   var result = t.match(regex);
-//   if (result)
-//   {
-//     return result[0].toString();
-//   } else {
-//     return "";
-//   }
-// }
 //# sourceMappingURL=index.js.map

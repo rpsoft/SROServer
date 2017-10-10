@@ -42,10 +42,8 @@ function mergeFilter(filterArray){
 }
 
 export async function advSearch(q){
-  //  args, page, limit, orderField, direction
-    var queryCode = Base64.encode(JSON.stringify(q));
-
-    //console.log("QUERY: "+Base64.encode(JSON.stringify(q)))
+    console.log(JSON.stringify(q))
+    var queryCode = JSON.stringify(q);
 
     for (var i = 0; i < bufferSize; i++ ){
       if ( queryBuffer.get(i) && queryBuffer.get(i).queryCode == queryCode ){
@@ -153,50 +151,22 @@ export async function advSearch(q){
     var feesArray = []
     q.minFees ? feesArray.push(' (data(.//num[@type="totalPence"]/@value) >= '+q.minFees+' )') : ''
     q.maxFees ? feesArray.push(' (data(.//num[@type="totalPence"]/@value) <= '+q.maxFees+' )') : ''
-
+    feesArray.length > 0 ? macroFilterArray.push(" [ "+feesArray.join ( " and " )+" ] ") : ""
 
     q.person ? macroFilterArray.push('[contains(lower-case(string-join(.//persName//text(),"")), "'+q.person.toLowerCase()+'") ]') : ""
 
     q.entry ? macroFilterArray.push('[.//@xml:id = "'+q.entry+'"]') : ""
 
-    feesArray.length > 0 ? macroFilterArray.push(" [ "+feesArray.join ( " and " )+" ] ") : ""
-
     var macroFilter = macroFilterArray.join("")
 
     console.log("MAC: "+macroFilter)
-
 
     var query  = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";'
     +' let $pageLimit as xs:decimal := '+q.limit+' let $page as xs:decimal := '+q.page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div'
     + (q.query ? '[ft:query(., "'+q.query+'")]' : '')
     + (macroFilter ? macroFilter : "")
     +' let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) '
-
-    // + statusGatheringString
-
-    // +' let $docid := data($hit//@xml:id)'
-    // +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
     +' where $hit/@type="entry" '
-
-    //personName
-    // + (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
-    //
-    // + (q.entry ? 'and (contains($docid,"'+q.entry+'"))' : "")
-    // +" "+ advSearch_dates+" "
-
-    //copies
-    // + entererRoleFilterString
-    // + entryTypeFilterString
-  //  + volumeFilterString
-
-    //minDate & maxDate
-  //  + dateFiltersString
-
-    //minFees
-    // + (q.minFees ? ' and data($hit//num[@type="totalPence"]/@value) >= '+q.minFees+' ' : '')
-    // //maxFees
-    // + (q.maxFees ? ' and data($hit//num[@type="totalPence"]/@value) <= '+q.maxFees+' ' : '')
-
 
     var post_query = ' let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> '
 
@@ -219,12 +189,9 @@ export async function advSearch(q){
         try{
           db.query(query,{wrap:"no"})
               .then(function(result) {
-
                   if ( queryBuffer.length >= bufferSize){
-
                     queryBuffer.shift()
                   }
-
                   queryBuffer.push({queryCode : queryCode, data: result })
                   Resolve(result)
                 })
