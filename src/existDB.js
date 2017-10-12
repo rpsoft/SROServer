@@ -5,7 +5,7 @@ var Deque = require("double-ended-queue");
 
 import {EDB_LOGIN} from "./config"
 
-var bufferSize = 20
+var bufferSize = 50
 var queryBuffer = new Deque(bufferSize)
 
 
@@ -155,7 +155,9 @@ export async function advSearch(q){
 
     q.person ? macroFilterArray.push('[contains(lower-case(string-join(.//persName//text(),"")), "'+q.person.toLowerCase()+'") ]') : ""
 
-    q.entry ? macroFilterArray.push('[.//@xml:id = "'+q.entry+'"]') : ""
+    var sroid = q.entry ? (q.entry.indexOf("SRO") == 0 ? q.entry : "SRO"+q.entry) : ""
+
+    q.entry ? macroFilterArray.push('[.//@xml:id = "'+sroid+'"]') : ""
 
     var macroFilter = macroFilterArray.join("")
 

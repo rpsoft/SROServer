@@ -130,8 +130,6 @@ app.get('/api/allEntriesPaged',async function(req,res){
   console.log(req.query.page)
   if (req.query.page){
     var xmlResult
-
-    var xmlResult;
      if ( req.query.sortField ) {
        if ( !(req.query.direction.indexOf("undefined") > -1) ){
          xmlResult = await EXISTDB.getAllEntriesPaged(req.query.page,req.query.limit,req.query.sortField,req.query.direction)

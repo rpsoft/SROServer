@@ -23,7 +23,7 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var advSearch = exports.advSearch = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(q) {
-    var queryCode, i, filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, advSearch_dates, macroFilterArray, feesArray, macroFilter, query, post_query;
+    var queryCode, i, filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, advSearch_dates, macroFilterArray, feesArray, sroid, macroFilter, query, post_query;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -180,7 +180,10 @@ var advSearch = exports.advSearch = function () {
 
             q.person ? macroFilterArray.push('[contains(lower-case(string-join(.//persName//text(),"")), "' + q.person.toLowerCase() + '") ]') : "";
 
-            q.entry ? macroFilterArray.push('[.//@xml:id = "' + q.entry + '"]') : "";
+            sroid = q.entry ? q.entry.indexOf("SRO") == 0 ? q.entry : "SRO" + q.entry : "";
+
+
+            q.entry ? macroFilterArray.push('[.//@xml:id = "' + sroid + '"]') : "";
 
             macroFilter = macroFilterArray.join("");
 
@@ -221,7 +224,7 @@ var advSearch = exports.advSearch = function () {
               }
             }));
 
-          case 80:
+          case 81:
           case 'end':
             return _context.stop();
         }
@@ -535,7 +538,7 @@ var exist = require('easy-exist');
 var Base64 = require('js-base64').Base64;
 var Deque = require("double-ended-queue");
 
-var bufferSize = 20;
+var bufferSize = 50;
 var queryBuffer = new Deque(bufferSize);
 
 // connect
