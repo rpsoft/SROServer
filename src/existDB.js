@@ -75,25 +75,15 @@ export async function advSearch(q){
             var minDate = filterValue.split("-")[0]+"-01-01"
             var maxDate = filterValue.split("-")[1]+"-12-31"
 
-            dateFiltersArray.push ("(.//ab[@type='metadata']/date/@when >= xs:date('"+minDate+"') and .//ab[@type='metadata']/date/@when <= xs:date('"+maxDate+"'))")
-            dateFiltersArray.push ("(.//ab[@type='metadata']/date/@notBefore >= xs:date('"+minDate+"') and .//ab[@type='metadata']/date/@notBefore <= xs:date('"+maxDate+"'))")
+            dateFiltersArray.push ("(.//ab[@type='metadata']/date[@type='SortDate']/@when >= xs:date('"+minDate+"') and .//ab[@type='metadata']/date[@type='SortDate']/@when <= xs:date('"+maxDate+"'))")
+            // dateFiltersArray.push ("(.//ab[@type='metadata']/date/@notBefore >= xs:date('"+minDate+"') and .//ab[@type='metadata']/date/@notBefore <= xs:date('"+maxDate+"'))")
 
             //dateFiltersArray.push ("( ( (.//ab[@type='metadata']/date/@when >= xs:date('"+minDate+"')) or (.//ab[@type='metadata']/date/@notBefore >= xs:date('"+minDate+"')) ) and ((.//ab[@type='metadata']/date/@when <= xs:date('"+maxDate+"') ) or (.//ab[@type='metadata']/date/@notBefore <= xs:date('"+maxDate+"')) ) )")
 
             break;
         case "volume":
-            switch (filterValue) {
-              case "A":
-                  volumeFiltersArray.push('(xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) < 1265)')
-                break;
-              case "B":
-                  volumeFiltersArray.push('((xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) > 1264) and (xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) < 3635))')
-                break;
-              case "C":
-                  volumeFiltersArray.push('(xs:decimal( replace(.//@xml:id, "[^0-9]", "") ) > 3634)')
-                break;
-            }
-            break;
+            volumeFiltersArray.push('.//idno[@type="Liber"] = "'+filterValue+'"')
+            break
 
         case "entryType":
 
@@ -167,11 +157,11 @@ export async function advSearch(q){
     +' let $pageLimit as xs:decimal := '+q.limit+' let $page as xs:decimal := '+q.page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div'
     + (q.query ? '[ft:query(., "'+q.query+'")]' : '')
     + (macroFilter ? macroFilter : "")
-    +' let $currentDate as xs:date := xs:date( if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore)) '
+    +' let $currentDate as xs:date := xs:date(data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when))  '
     +' where $hit/@type="entry" '
     + advSearch_dates
 
-    var post_query = ' let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ if (data($hit//ab[@type="metadata"]/date/@when)) then data($hit//ab[@type="metadata"]/date/@when) else data($hit//ab[@type="metadata"]/date/@notBefore) }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> '
+    var post_query = ' let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> '
 
     if ( q.sortField ){
       if ( q.sortField == "date" ){
