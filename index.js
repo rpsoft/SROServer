@@ -79,36 +79,40 @@ app.get('/api/staticPage', function () {
         switch (_context2.prev = _context2.next) {
           case 0:
             if (!req.query.page) {
-              _context2.next = 12;
+              _context2.next = 14;
               break;
             }
 
             _context2.t0 = req.query.page;
-            _context2.next = _context2.t0 === "home" ? 4 : _context2.t0 === "project" ? 6 : _context2.t0 === "about" ? 8 : 10;
+            _context2.next = _context2.t0 === "home" ? 4 : _context2.t0 === "project" ? 6 : _context2.t0 === "about" ? 8 : _context2.t0 === "help" ? 10 : 12;
             break;
 
           case 4:
             url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/home.html";
-            return _context2.abrupt('break', 11);
+            return _context2.abrupt('break', 13);
 
           case 6:
             url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/project.html";
-            return _context2.abrupt('break', 11);
+            return _context2.abrupt('break', 13);
 
           case 8:
             url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/about.html";
-            return _context2.abrupt('break', 11);
+            return _context2.abrupt('break', 13);
 
           case 10:
+            url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/help.html";
+            return _context2.abrupt('break', 13);
+
+          case 12:
             url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/home.html";
 
-          case 11:
+          case 13:
 
             request(url, function (error, response, body) {
               res.send(body);
             });
 
-          case 12:
+          case 14:
           case 'end':
             return _context2.stop();
         }

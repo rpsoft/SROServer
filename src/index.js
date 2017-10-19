@@ -64,6 +64,9 @@ app.get('/api/staticPage',async function(req,res){
       case "about":
         url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/about.html"
         break;
+      case "help":
+        url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/help.html"
+        break;
       default:
         url = "https://raw.githubusercontent.com/rpsoft/SROFrontEnd/master/src/staticPages/home.html"
     }
