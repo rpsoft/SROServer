@@ -118,6 +118,8 @@ export async function advSearch(q){
 
     var advSearch_dates = ""
 
+    console.log(q.minDate + " : " + q.maxDate)
+
     if(q.minDate && q.maxDate){
       advSearch_dates = "and ( ($currentDate >= xs:date('"+q.minDate+"') and $currentDate <= xs:date('"+q.maxDate+"')) )";
     } else if( q.minDate ){
@@ -139,8 +141,8 @@ export async function advSearch(q){
     entryTypeFilterString.length > 0 ? macroFilterArray.push ( "["+entryTypeFilterString+"]" ) : ""
 
     var feesArray = []
-    q.minFees ? feesArray.push(' (data(.//num[@type="totalPence"]/@value) >= '+q.minFees+' )') : ''
-    q.maxFees ? feesArray.push(' (data(.//num[@type="totalPence"]/@value) <= '+q.maxFees+' )') : ''
+    q.minFees ? feesArray.push(' (data(.//ab/num[@type="totalEntryPence"]/@value) >= '+q.minFees+' )') : ''
+    q.maxFees ? feesArray.push(' (data(.//ab/num[@type="totalEntryPence"]/@value) <= '+q.maxFees+' )') : ''
     feesArray.length > 0 ? macroFilterArray.push(" [ "+feesArray.join ( " and " )+" ] ") : ""
 
     q.person ? macroFilterArray.push('[contains(lower-case(string-join(.//persName//text(),"")), "'+q.person.toLowerCase()+'") ]') : ""
@@ -158,14 +160,18 @@ export async function advSearch(q){
     + (q.query ? '[ft:query(., "'+q.query+'")]' : '')
     + (macroFilter ? macroFilter : "")
     +' let $currentDate as xs:date := xs:date(data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when))  '
+    + (q.query ? ' let $score as xs:float := ft:score($hit)' : '')
+
     +' where $hit/@type="entry" '
     + advSearch_dates
 
-    var post_query = ' let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> '
+    var post_query = ' let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="200"/>) } return <entry> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := if ( $pageLimit - $offset < 1) then 1 else $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> '
 
     if ( q.sortField ){
       if ( q.sortField == "date" ){
         query = query + ' order by $currentDate '+q.direction+' '
+      } else if (q.query && q.sortField == "relevance"){
+        query = query + ' order by $score descending'
       } else {
         query = query + ' order by $hit//'+translateOrderingField(q.orderField).trim()+' '+q.direction+' '
       }
