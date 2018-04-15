@@ -2,6 +2,10 @@ var exist = require('easy-exist');
 
 import {EDB_LOGIN} from "./config"
 
+var simpleSearchCache = {}
+var cachedQueries = []
+var maxCacheElements = 40
+
 // connect
 var db = new exist.DB('http://localhost:8080', {
     username: EDB_LOGIN.username,
@@ -11,15 +15,19 @@ var db = new exist.DB('http://localhost:8080', {
 
 function translateOrderingField(sortField){
   var xmlField = ""
+
   switch (sortField){
         case 'id':
-         xmlField = '@xml:id'
+        // console.log("USE EL ID");
+         xmlField = '$hit//@xml:id'
          break;
         case 'date':
-         xmlField = 'date//text()[last()]'
+        // console.log("USE EL DATE");
+         xmlField = 'xs:decimal($hit//idno[@type="SRONumber"])'
          break;
         default:
-         xmlField = '@xml:id'
+        // console.log("USE EL DEFAULT");
+         xmlField = '$hit//@xml:id'
       }
       return xmlField;
 }
@@ -36,7 +44,15 @@ function mergeFilter(filterArray){
 
 export async function advSearch(q){
   //  args, page, limit, orderField, direction
-    console.log(JSON.stringify(q))
+
+    // Caching system
+    var queryString = JSON.stringify(q)
+    var cachedResult = simpleSearchCache[queryString];
+    if ( cachedResult ){
+      console.log("USING CACHED search for: "+queryString)
+      return cachedResult
+    }
+    // End caching system.
 
     var filters = eval(q.filters)
 
@@ -66,13 +82,13 @@ export async function advSearch(q){
         case "volume":
             switch (filterValue) {
               case "A":
-                  volumeFiltersArray.push("($rawCode < 1265)")
+                  volumeFiltersArray.push("($hit//idno[@type='SRONumber'] < 1265)")
                 break;
               case "B":
-                  volumeFiltersArray.push("(($rawCode > 1264) and ($rawCode < 3635))")
+                  volumeFiltersArray.push("(($hit//idno[@type='SRONumber'] > 1264) and ($hit//idno[@type='SRONumber'] < 3635))")
                 break;
               case "C":
-                  volumeFiltersArray.push("($rawCode > 3634)")
+                  volumeFiltersArray.push("($hit//idno[@type='SRONumber'] > 3634)")
                 break;
             }
 
@@ -105,13 +121,13 @@ export async function advSearch(q){
     var entryTypeFilterString = mergeFilter(entryTypeFiltersArray)
     var entererRoleFilterString = mergeFilter(entererRoleFiltersArray)
 
-    console.log("DDDA: "+dateFiltersString)
-    console.log("DDDASS: "+JSON.stringify(dateFiltersArray))
-
+    // console.log("DDDA: "+dateFiltersString)
+    // console.log("DDDASS: "+JSON.stringify(dateFiltersArray))
+    // console.log("Q::: "+JSON.stringify(q))
     var query  = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";'
     +' let $pageLimit as xs:decimal := '+q.limit+' let $page as xs:decimal := '+q.page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div'
-    + (q.query ? '[ft:query(., "'+q.query+'")]' : '')
-    +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when) ) let $rawCode as xs:decimal := xs:decimal( replace($hit//@xml:id, "[^0-9]", "") ) '
+    + (q.query ? "[ft:query(., '"+q.query+"')]" : '')
+    +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when) ) '
     +' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])'
     +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
     +' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
@@ -119,7 +135,11 @@ export async function advSearch(q){
     //personName
     //+ (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
 
-    + (q.person ? ' and index-of($people/descendant::*/lower-case(text()),"'+q.person.toLowerCase()+'") > 0' : '')
+    + (
+      q.person ?
+      q.person.split(" ").map( (v,i) => v ? ' and (index-of($people/descendant::*/lower-case(text()),"'+v.toLowerCase()+'") > 0) ' : "" ).join("")
+      : ''
+    )
 
     //copies
     + entererRoleFilterString
@@ -139,18 +159,18 @@ export async function advSearch(q){
     + (q.maxFees ? ' and data($hit//num[@type="totalPence"]/@value) <= '+q.maxFees+' ' : '')
 
     //entry
-
+    + (q.entry ? ' and $hit//idno[@type="SRONumber"] = "'+q.entry+ '"' : '')
     // FILTERS
 
 
 
 
-    var post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <people>{$people}</people> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $resultsCount as xs:decimal := array:size($allResults) let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $firstEntry := if ( $page > $maxpage ) then ($maxpage * $pageLimit) - ($pageLimit - 1) else ($page * $pageLimit) - ($pageLimit - 1) let $offset := if ( ($firstEntry + $pageLimit) > $resultsCount ) then ($firstEntry + $pageLimit) - $resultsCount else 0 let $pagesToReturn := $pageLimit - $offset return <results> <paging> <current>{$page}</current> <last>{$maxpage}</last> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> '
+    var post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <people>{$people}</people> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $page := if( $page < 1 ) then 1 else $page let $resultsCount as xs:decimal := array:size($allResults) let $firstEntry := (($page - 1)*$pageLimit)+1 let $firstEntry := if( $firstEntry > $resultsCount) then ( if ( ($resultsCount - $pageLimit) < 0) then 1 else $resultsCount - $pageLimit ) else $firstEntry let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $pagesToReturn := if( ($firstEntry + $pageLimit) > $resultsCount ) then ( $pageLimit - ( $firstEntry + $pageLimit -$resultsCount )+1 ) else $pageLimit return <results> <paging> <current>{$page}</current> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> <last>{$maxpage}</last> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
 
     //query = query + ' and contains($people//role/text(), "enterer") '
 
     if ( q.sortField ){
-      query = query + ' order by $hit//'+translateOrderingField(q.orderField).trim()+' '+q.direction+' '
+      query = query + ' order by '+translateOrderingField(q.sortField).trim()+' '+q.direction+' '
     } else {
       query = query + ' order by $score descending '
     }
@@ -165,6 +185,21 @@ export async function advSearch(q){
           db.query(query,{wrap:"no"})
               .then(function(result) {
                 //  console.log('xQuery result:', result);
+
+                  try{ // very crude implementation of a cache. to speed up repeating searches.
+
+                    if( cachedQueries.length > maxCacheElements ){
+                        delete simpleSearchCache[cachedQueries.shift()]
+                    }
+
+                    simpleSearchCache[queryString] = result
+                    cachedQueries.push(queryString)
+
+                  }catch ( cacheError){
+                    console.log(cacheError)
+                  }
+
+
                   Resolve(result)
                 })
 
