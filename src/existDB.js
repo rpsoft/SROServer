@@ -80,37 +80,35 @@ export async function advSearch(q){
             dateFiltersArray.push ("($currentDate >= xs:date('"+minDate+"') and $currentDate <= xs:date('"+maxDate+"'))")
             break;
         case "volume":
-            switch (filterValue) {
-              case "A":
-                  volumeFiltersArray.push("($hit//idno[@type='SRONumber'] < 1265)")
-                break;
-              case "B":
-                  volumeFiltersArray.push("(($hit//idno[@type='SRONumber'] > 1264) and ($hit//idno[@type='SRONumber'] < 3635))")
-                break;
-              case "C":
-                  volumeFiltersArray.push("($hit//idno[@type='SRONumber'] > 3634)")
-                break;
-            }
 
+            volumeFiltersArray.push('(lower-case($hit//idno[@type="Liber"]) = "'+filterValue.toLowerCase().trim()+'")')
+
+            // switch (filterValue) {
+            //   case "A":
+            //       volumeFiltersArray.push("($hit//idno[@type='SRONumber'] < 1265)")
+            //     break;
+            //   case "B":
+            //       volumeFiltersArray.push("(($hit//idno[@type='SRONumber'] > 1264) and ($hit//idno[@type='SRONumber'] < 3635))")
+            //     break;
+            //   case "C":
+            //       volumeFiltersArray.push("($hit//idno[@type='SRONumber'] > 3634)")
+            //     break;
+            // }
+            break;
         case "entryType":
-            switch (filterValue) {
-              case "Entered":
-                  entryTypeFiltersArray.push("($enteredNotes > 0)")
-                break;
-              case "Stock":
-                  entryTypeFiltersArray.push("($stockNotes > 0)")
-                break;
-            }
-        case "entererRole":
-            switch(filterValue) {
-              case "Stationer":
-                entererRoleFiltersArray.push("$isStationer")
-                break;
-              case "Non-Stationer":
-                entererRoleFiltersArray.push("not($isStationer )")
-                break;
-            }
 
+            entryTypeFiltersArray.push('count($hit//note[lower-case(@subtype)="'+filterValue.toLowerCase().trim()+'"])')
+
+        // case "entererRole":
+        //     switch(filterValue) {
+        //       case "Stationer":
+        //         entererRoleFiltersArray.push('contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")')
+        //         break;
+        //       case "Non-Stationer":
+        //         entererRoleFiltersArray.push('not(contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer"))')
+        //         break;
+        //     }
+          break;
 
       }
     }
@@ -119,7 +117,7 @@ export async function advSearch(q){
     var dateFiltersString = mergeFilter(dateFiltersArray)
     var volumeFilterString = mergeFilter(volumeFiltersArray)
     var entryTypeFilterString = mergeFilter(entryTypeFiltersArray)
-    var entererRoleFilterString = mergeFilter(entererRoleFiltersArray)
+    // var entererRoleFilterString = mergeFilter(entererRoleFiltersArray)
 
     // console.log("DDDA: "+dateFiltersString)
     // console.log("DDDASS: "+JSON.stringify(dateFiltersArray))
@@ -128,21 +126,21 @@ export async function advSearch(q){
     +' let $pageLimit as xs:decimal := '+q.limit+' let $page as xs:decimal := '+q.page+' let $allResults := array { for $hit in collection("/db/SRO")//tei:div'
     + (q.query ? "[ft:query(., '"+q.query+"')]" : '')
     +' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when) ) '
-    +' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])'
-    +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
-    +' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
+    // +' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])'
+    // +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
+    +' where $hit/@type="entry" '
 
     //personName
     //+ (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
 
     + (
       q.person ?
-      q.person.split(" ").map( (v,i) => v ? ' and (index-of($people/descendant::*/lower-case(text()),"'+v.toLowerCase()+'") > 0) ' : "" ).join("")
+      q.person.split(" ").map( (v,i) => v ? ' and contains(lower-case(string-join($hit//persName/descendant::*/text())),"'+v.toLowerCase()+'") ' : "" ).join("")
       : ''
     )
 
     //copies
-    + entererRoleFilterString
+    // + entererRoleFilterString
     + entryTypeFilterString
     + volumeFilterString
 
@@ -162,10 +160,7 @@ export async function advSearch(q){
     + (q.entry ? ' and $hit//idno[@type="SRONumber"] = "'+q.entry+ '"' : '')
     // FILTERS
 
-
-
-
-    var post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <people>{$people}</people> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $page := if( $page < 1 ) then 1 else $page let $resultsCount as xs:decimal := array:size($allResults) let $firstEntry := (($page - 1)*$pageLimit)+1 let $firstEntry := if( $firstEntry > $resultsCount) then ( if ( ($resultsCount - $pageLimit) < 0) then 1 else $resultsCount - $pageLimit ) else $firstEntry let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $pagesToReturn := if( ($firstEntry + $pageLimit) > $resultsCount ) then ( $pageLimit - ( $firstEntry + $pageLimit -$resultsCount )+1 ) else $pageLimit return <results> <paging> <current>{$page}</current> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> <last>{$maxpage}</last> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
+    var post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $page := if( $page < 1 ) then 1 else $page let $resultsCount as xs:decimal := array:size($allResults) let $firstEntry := (($page - 1)*$pageLimit)+1 let $firstEntry := if( $firstEntry > $resultsCount) then ( if ( ($resultsCount - $pageLimit) < 0) then 1 else $resultsCount - $pageLimit ) else $firstEntry let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $pagesToReturn := if( ($firstEntry + $pageLimit) > $resultsCount ) then ( $pageLimit - ( $firstEntry + $pageLimit -$resultsCount )+1 ) else $pageLimit return <results> <paging> <current>{$page}</current> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> <last>{$maxpage}</last> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
 
     //query = query + ' and contains($people//role/text(), "enterer") '
 

@@ -23,7 +23,7 @@ var _asyncToGenerator3 = _interopRequireDefault(_asyncToGenerator2);
 
 var advSearch = exports.advSearch = function () {
   var _ref = (0, _asyncToGenerator3.default)( /*#__PURE__*/_regenerator2.default.mark(function _callee(q) {
-    var queryString, cachedResult, filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, entererRoleFilterString, query, post_query;
+    var queryString, cachedResult, filters, dateFiltersArray, volumeFiltersArray, entryTypeFiltersArray, entererRoleFiltersArray, f, filterKey, filterValue, minDate, maxDate, dateFiltersString, volumeFilterString, entryTypeFilterString, query, post_query;
     return _regenerator2.default.wrap(function _callee$(_context) {
       while (1) {
         switch (_context.prev = _context.next) {
@@ -59,7 +59,7 @@ var advSearch = exports.advSearch = function () {
 
           case 12:
             if ((_context.t1 = _context.t0()).done) {
-              _context.next = 48;
+              _context.next = 29;
               break;
             }
 
@@ -67,7 +67,7 @@ var advSearch = exports.advSearch = function () {
             filterKey = filters[f].split("_")[0];
             filterValue = filters[f].split("_")[1];
             _context.t2 = filterKey;
-            _context.next = _context.t2 === "date" ? 19 : _context.t2 === "volume" ? 23 : _context.t2 === "entryType" ? 32 : _context.t2 === "entererRole" ? 39 : 46;
+            _context.next = _context.t2 === "date" ? 19 : _context.t2 === "volume" ? 23 : _context.t2 === "entryType" ? 25 : 27;
             break;
 
           case 19:
@@ -76,78 +76,71 @@ var advSearch = exports.advSearch = function () {
 
 
             dateFiltersArray.push("($currentDate >= xs:date('" + minDate + "') and $currentDate <= xs:date('" + maxDate + "'))");
-            return _context.abrupt('break', 46);
+            return _context.abrupt('break', 27);
 
           case 23:
-            _context.t3 = filterValue;
-            _context.next = _context.t3 === "A" ? 26 : _context.t3 === "B" ? 28 : _context.t3 === "C" ? 30 : 32;
-            break;
 
-          case 26:
-            volumeFiltersArray.push("($hit//idno[@type='SRONumber'] < 1265)");
-            return _context.abrupt('break', 32);
+            volumeFiltersArray.push('(lower-case($hit//idno[@type="Liber"]) = "' + filterValue.toLowerCase().trim() + '")');
 
-          case 28:
-            volumeFiltersArray.push("(($hit//idno[@type='SRONumber'] > 1264) and ($hit//idno[@type='SRONumber'] < 3635))");
-            return _context.abrupt('break', 32);
+            // switch (filterValue) {
+            //   case "A":
+            //       volumeFiltersArray.push("($hit//idno[@type='SRONumber'] < 1265)")
+            //     break;
+            //   case "B":
+            //       volumeFiltersArray.push("(($hit//idno[@type='SRONumber'] > 1264) and ($hit//idno[@type='SRONumber'] < 3635))")
+            //     break;
+            //   case "C":
+            //       volumeFiltersArray.push("($hit//idno[@type='SRONumber'] > 3634)")
+            //     break;
+            // }
+            return _context.abrupt('break', 27);
 
-          case 30:
-            volumeFiltersArray.push("($hit//idno[@type='SRONumber'] > 3634)");
-            return _context.abrupt('break', 32);
+          case 25:
 
-          case 32:
-            _context.t4 = filterValue;
-            _context.next = _context.t4 === "Entered" ? 35 : _context.t4 === "Stock" ? 37 : 39;
-            break;
+            entryTypeFiltersArray.push('count($hit//note[lower-case(@subtype)="' + filterValue.toLowerCase().trim() + '"])');
 
-          case 35:
-            entryTypeFiltersArray.push("($enteredNotes > 0)");
-            return _context.abrupt('break', 39);
+            // case "entererRole":
+            //     switch(filterValue) {
+            //       case "Stationer":
+            //         entererRoleFiltersArray.push('contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")')
+            //         break;
+            //       case "Non-Stationer":
+            //         entererRoleFiltersArray.push('not(contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer"))')
+            //         break;
+            //     }
+            return _context.abrupt('break', 27);
 
-          case 37:
-            entryTypeFiltersArray.push("($stockNotes > 0)");
-            return _context.abrupt('break', 39);
-
-          case 39:
-            _context.t5 = filterValue;
-            _context.next = _context.t5 === "Stationer" ? 42 : _context.t5 === "Non-Stationer" ? 44 : 46;
-            break;
-
-          case 42:
-            entererRoleFiltersArray.push("$isStationer");
-            return _context.abrupt('break', 46);
-
-          case 44:
-            entererRoleFiltersArray.push("not($isStationer )");
-            return _context.abrupt('break', 46);
-
-          case 46:
+          case 27:
             _context.next = 12;
             break;
 
-          case 48:
+          case 29:
 
             // console.log(dateFiltersArray.join(" or "))
             dateFiltersString = mergeFilter(dateFiltersArray);
             volumeFilterString = mergeFilter(volumeFiltersArray);
             entryTypeFilterString = mergeFilter(entryTypeFiltersArray);
-            entererRoleFilterString = mergeFilter(entererRoleFiltersArray);
+            // var entererRoleFilterString = mergeFilter(entererRoleFiltersArray)
 
             // console.log("DDDA: "+dateFiltersString)
             // console.log("DDDASS: "+JSON.stringify(dateFiltersArray))
             // console.log("Q::: "+JSON.stringify(q))
 
-            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? "[ft:query(., '" + q.query + "')]" : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when) ) ' + ' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])' + ' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")' + ' let $people := for $pers in $hit//persName return <person> <role>{data($pers/@role)}</role> <name> <title> {normalize-space($pers/text()[last()])} </title> <forename>{$pers/forename/text()}</forename> <surname>{$pers/surname/text()}</surname> </name> </person> where $hit/@type="entry" '
+            query = 'xquery version "3.1"; declare default element namespace "http://www.tei-c.org/ns/1.0"; declare namespace tei="http://www.tei-c.org/ns/1.0"; declare namespace array="http://www.w3.org/2005/xpath-functions/array"; declare function local:filter($node as node(), $mode as xs:string) as xs:string? { if ($mode eq "before") then concat($node, " ") else concat(" ", $node) }; import module namespace kwic="http://exist-db.org/xquery/kwic";' + ' let $pageLimit as xs:decimal := ' + q.limit + ' let $page as xs:decimal := ' + q.page + ' let $allResults := array { for $hit in collection("/db/SRO")//tei:div' + (q.query ? "[ft:query(., '" + q.query + "')]" : '') + ' let $score as xs:float := ft:score($hit) let $currentDate as xs:date := xs:date( data($hit//ab[@type="metadata"]/date[@type="SortDate"]/@when) ) '
+            // +' let $stockNotes := count($hit//note[@subtype="stock"]) let $enteredNotes := count($hit//note[@subtype="entered"])'
+            // +' let $isStationer := contains(data($hit//persName[contains(@role, "enterer")]/@role),"stationer")'
+            + ' where $hit/@type="entry" '
 
             //personName
             //+ (q.person ? ' and contains(lower-case(string-join($people//text(),"")), "'+q.person.toLowerCase()+'")' : '')
 
             + (q.person ? q.person.split(" ").map(function (v, i) {
-              return v ? ' and (index-of($people/descendant::*/lower-case(text()),"' + v.toLowerCase() + '") > 0) ' : "";
+              return v ? ' and contains(lower-case(string-join($hit//persName/descendant::*/text())),"' + v.toLowerCase() + '") ' : "";
             }).join("") : '')
 
             //copies
-            + entererRoleFilterString + entryTypeFilterString + volumeFilterString
+            // + entererRoleFilterString
+            + entryTypeFilterString + volumeFilterString
 
             //minDate & maxDate
             + (q.minDate ? " and ($currentDate >= xs:date('" + q.minDate + "') )" : "") + (q.maxDate ? " and ($currentDate <= xs:date('" + q.maxDate + "') )" : "")
@@ -164,8 +157,7 @@ var advSearch = exports.advSearch = function () {
             + (q.entry ? ' and $hit//idno[@type="SRONumber"] = "' + q.entry + '"' : '');
             // FILTERS
 
-
-            post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <people>{$people}</people> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $page := if( $page < 1 ) then 1 else $page let $resultsCount as xs:decimal := array:size($allResults) let $firstEntry := (($page - 1)*$pageLimit)+1 let $firstEntry := if( $firstEntry > $resultsCount) then ( if ( ($resultsCount - $pageLimit) < 0) then 1 else $resultsCount - $pageLimit ) else $firstEntry let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $pagesToReturn := if( ($firstEntry + $pageLimit) > $resultsCount ) then ( $pageLimit - ( $firstEntry + $pageLimit -$resultsCount )+1 ) else $pageLimit return <results> <paging> <current>{$page}</current> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> <last>{$maxpage}</last> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
+            post_query = '  let $expanded := kwic:expand($hit) let $sum := array { for $h in $expanded//exist:match return kwic:get-summary($expanded, $h, <config xmlns="" width="40"/>) } return <entry> <date>{ $currentDate }</date> <docid>{data($hit//@xml:id)}</docid> <doc>{$hit}</doc> <sum>{$sum}</sum> </entry> } let $page := if( $page < 1 ) then 1 else $page let $resultsCount as xs:decimal := array:size($allResults) let $firstEntry := (($page - 1)*$pageLimit)+1 let $firstEntry := if( $firstEntry > $resultsCount) then ( if ( ($resultsCount - $pageLimit) < 0) then 1 else $resultsCount - $pageLimit ) else $firstEntry let $maxpage as xs:double := math-ext:ceil($resultsCount div $pageLimit) let $pagesToReturn := if( ($firstEntry + $pageLimit) > $resultsCount ) then ( $pageLimit - ( $firstEntry + $pageLimit -$resultsCount )+1 ) else $pageLimit return <results> <paging> <current>{$page}</current> <returned>{$pagesToReturn}</returned> <total>{$resultsCount}</total> <last>{$maxpage}</last> </paging> <entries>{array:flatten(array:subarray($allResults, $firstEntry, $pagesToReturn))}</entries> </results> ';
 
             //query = query + ' and contains($people//role/text(), "enterer") '
 
@@ -206,7 +198,7 @@ var advSearch = exports.advSearch = function () {
               }
             }));
 
-          case 58:
+          case 38:
           case 'end':
             return _context.stop();
         }
